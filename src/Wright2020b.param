@@ -7,9 +7,9 @@
 #Rscript binary
 P_RSCRIPT=`which Rscript`
 #LDAC tools folder 
-DIR_LDAC="/net/home/fohlen12/hendrik/src/theli-1.30.0/bin/Linux_64/"
+DIR_LDAC="/path/to/theli-1.30.0/bin/Linux_64/"
 #LDAC Commands Suffix
-THELI="_theli"
+THELI=""
 #Maximum number of simultaneous runs
 MAXRUNS=3
 
@@ -37,10 +37,7 @@ BLINDS="NONE"
 
 #Define the goldsets to analyse
 GOLDLIST="NONE NONE_shift Fid Fid_shift noDEEP2_shift noVVDS_shift nozCOSMOS_shift speczquality4 multispec3"
-#GOLDLIST="speczquality4"
 
-##Tomographic bin clusters (Phot training)
-#TOMO_CLUST_PHT_TRAIN="4200 3200 2400 2600 1600 1600"
 #SOM Filename 
 SOMFILE="Spec_Train_Adapt_DIR_SOMdata.Rdata"
 #Tomographic bin clusters (spec training) 
