@@ -37,6 +37,7 @@ require.and.load('FITSio')
 require.and.load('foreach')
 require.and.load('doParallel')
 require.and.load('itertools')
+require.and.load('astro')
 require.and.load('kohonen/kohonen','AngusWright') 
 
 EOF
