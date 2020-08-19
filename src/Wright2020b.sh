@@ -106,6 +106,20 @@ fi
 
 if [ "${1}" == "4" -o "${1}" == "" ]
 then
+  if [ ! -f SOM_DIR.R ]
+  then
+    #Install the SOM_DIR code {{{
+    cd ${ROOT}
+    mkdir -p INSTALL
+    cd ${ROOT}/INSTALL
+    if [ ! -d SOM_DIR ]
+    then 
+      git clone https://github.com/AngusWright/SOM_DIR.git
+    fi 
+    bash SOM_DIR/INSTALL.sh 
+    ln -s SOM_DIR/R/SOM_DIR.sh . 
+    #}}}
+  fi 
   #Construct the Fiducial SOM  /*fold*/ {{{
   if [ ! -f ${OUTPUTDIR}/${SOMFILE} ]
   then 
