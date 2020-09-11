@@ -307,8 +307,8 @@ if (!file.exists(outname.phot)|!file.exists(outname.spec)) {
                                                        data=spec,
                                                        n.cluster.bins=tomo.bin[tomo],n.cores=6,
                                                        expression="nrow(data)",quiet=TRUE)$property$value.1
-          phot.tmp.weights<-generate.kohgroup.property(som=spec.tmp.som,
-                                                       data=spec,
+          phot.tmp.weights<-generate.kohgroup.property(som=phot.tmp.som,
+                                                       data=phot,
                                                        n.cluster.bins=tomo.bin[tomo],n.cores=6,
                                                        expression="sum(data[[blind.count.variable]])",quiet=TRUE)$property$value.1
           tmp.weights<-phot.tmp.weights/spec.tmp.weights
