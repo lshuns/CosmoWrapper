@@ -364,8 +364,8 @@ if (!file.exists(outname.phot)|!file.exists(outname.spec)) {
                                                        data=spec,
                                                        n.cluster.bins=tomo.bin[tomo],n.cores=6,
                                                        expression="nrow(data)",quiet=TRUE)$property$value.1
-          phot.tmp.weights<-generate.kohgroup.property(som=spec.tmp.som,
-                                                       data=spec,
+          phot.tmp.weights<-generate.kohgroup.property(som=phot.tmp.som,
+                                                       data=phot,
                                                        n.cluster.bins=tomo.bin[tomo],n.cores=6,
                                                        expression="sum(data[[blind.count.variable]])",quiet=TRUE)$property$value.1
           tmp.weights<-phot.tmp.weights/spec.tmp.weights
@@ -473,22 +473,22 @@ for (blind in blind.list) {
     full.phot.expressions<-gsub("full.phot[[","phot[[",full.phot.expressions,fixed=T)
     #}}}
     #Spectroscopic QC Expression {{{
-    blind.spec.expression<-gsub(count.variable,blind.count.variable,spec.expressions)
+    #blind.spec.expression<-gsub(count.variable,blind.count.variable,spec.expressions)
     blind.spec.expression<-gsub("SurveyFlag",paste0("SurveyFlag_",blind),blind.spec.expression)
     blind.spec.expression<-gsub("Class",paste0("Class_",blind),blind.spec.expression)
     #}}}
     #Photometric QC Expression {{{
-    blind.phot.expression<-gsub(count.variable,blind.count.variable,phot.expressions)
+    #blind.phot.expression<-gsub(count.variable,blind.count.variable,phot.expressions)
     blind.phot.expression<-gsub("Flag",paste0("Flag_",blind),blind.phot.expression)
     blind.phot.expression<-gsub("Class",paste0("Class_",blind),blind.phot.expression)
     #}}}
     #Spectroscopic Selection Expression {{{
-    blind.spec.selection<-gsub(count.variable,blind.count.variable,class.sets[set,3])
+    #blind.spec.selection<-gsub(count.variable,blind.count.variable,class.sets[set,3])
     blind.spec.selection<-gsub("SurveyFlag",paste0("SurveyFlag_",blind),blind.spec.selection)
     blind.spec.selection<-gsub("Class",paste0("Class_",blind),blind.spec.selection)
     #}}}
     #Photometric Selection Expression {{{
-    blind.phot.selection<-gsub(count.variable,blind.count.variable,class.sets[set,2])
+    #blind.phot.selection<-gsub(count.variable,blind.count.variable,class.sets[set,2])
     blind.phot.selection<-gsub("Flag",paste0("Flag_",blind),blind.phot.selection)
     blind.phot.selection<-gsub("Class",paste0("Class_",blind),blind.phot.selection)
     #}}}
