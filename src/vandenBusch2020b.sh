@@ -1,4 +1,4 @@
-#
+#!/usr/bin/env bash
 #
 # Script for running the fiducial results for the Wright 2020 (b) paper. 
 # Uses KV450 Catalogues to run Cosmological Chains with different GoldClasses
@@ -7,7 +7,7 @@
 set -e 
 
 #Source the default parameters file /*fold*/ {{{
-source Wright2020b.param
+source vandenBusch2020b.param
 #/*fend*/}}}
 
 #Define the root directory  /*fold*/ {{{
@@ -127,7 +127,7 @@ then
     ${P_RSCRIPT} SOM_DIR.R \
       -r ${OUTPUTDIR}/${PHOTCAT_ALL_DCOL} -t ${OUTPUTDIR}/${SPECCAT_ALL_ADAPT} \
       --toroidal --topo hexagonal --som.dim 101 101 -np -fn Inf \
-      -sc 32 --only.som \
+      -sc 64 --only.som \
       -o ${OUTPUTDIR} -of ${SOMFILE//_SOMdata/} \
       --zr.label Z_B --zt.label Zbest \
       -k MAG_GAAP_u-MAG_GAAP_g \
@@ -174,7 +174,7 @@ then
       ${P_RSCRIPT} SOM_DIR.R \
         -r ${OUTPUTDIR}/${PHOTCAT_ALL_DCOL//_DIRcols.cat/_DIRcols_TOMO${TOMO}.fits} -t ${OUTPUTDIR}/${SPECCAT_ALL_ADAPT//_adapt/_adapt_TOMO${TOMO}} \
         --toroidal --topo hexagonal --som.dim 101 101 -np -fn Inf \
-        -sc 16 --optimise --refr.flag -cr recal_weight \
+        -sc 64 --optimise --refr.flag -cr recal_weight \
         --old.som ${OUTPUTDIR}/${SOMFILE} \
         -o ${OUTPUTDIR} -of ${SOMFILE//_SOMdata/_TOMO${TOMO}} \
         --zr.label Z_B --zt.label Zbest \
@@ -234,10 +234,13 @@ then
     GOLDFLAGLIST=""
     for goldset in ${GOLDLIST}
     do 
-      if [ "`echo ${goldset} | grep -c NONE`" == "0" ] 
-      then 
-        GOLDFLAGLIST=`echo $GOLDFLAGLIST Flag_SOM_${goldset//_shift/}`
-      fi 
+      if [ "${goldset}" != "ORIG" ]
+      then
+        if [ "`echo ${goldset} | grep -c NONE`" == "0" ] 
+        then 
+          GOLDFLAGLIST=`echo $GOLDFLAGLIST Flag_SOM_${goldset//_shift/}`
+        fi 
+      fi
     done
     python merge_ldac_and_fits.py ${OUTPUTDIR}/${PHOTCAT_ALL} \
       ${OUTPUTDIR}/${PHOTCAT_ALL_DCOL//.cat/_allgoldclass.fits} \
@@ -261,11 +264,11 @@ then
     if [ $TMPLO -lt $TMPHI ]
     then 
       #Normal RA limits: pick lo < RA <= hi 
-      ${DIR_LDAC}/ldacfilter${THELI} -i ${OUTPUTDIR}/${PHOTCAT_ALL_GOLD} -o ${OUTPUTDIR}/${PHOTCAT_ALL_GOLD//${PATCHALL}/${PATCH}} \
+      ${P_LDACFILTER} -i ${OUTPUTDIR}/${PHOTCAT_ALL_GOLD} -o ${OUTPUTDIR}/${PHOTCAT_ALL_GOLD//${PATCHALL}/${PATCH}} \
         -c "((ALPHA_J2000>${TMPLO})AND(ALPHA_J2000<=${TMPHI}));"
     else 
       #RA limits cross the RA=0 boundary: pick (RA > lo | RA <= hi)
-      ${DIR_LDAC}/ldacfilter${THELI} -i ${OUTPUTDIR}/${PHOTCAT_ALL_GOLD} -o ${OUTPUTDIR}/${PHOTCAT_ALL_GOLD//${PATCHALL}/${PATCH}} \
+      ${P_LDACFILTER} -i ${OUTPUTDIR}/${PHOTCAT_ALL_GOLD} -o ${OUTPUTDIR}/${PHOTCAT_ALL_GOLD//${PATCHALL}/${PATCH}} \
         -c "((ALPHA_J2000>${TMPLO})OR(ALPHA_J2000<=${TMPHI}));"
     fi 
   done
@@ -278,16 +281,19 @@ then
   cd ${ROOT}
   mkdir -p INSTALL
   cd ${ROOT}/INSTALL
-  if [ ! -d COSMOPIPE ]
+  if [ ! -d CosmoPipe ]
   then 
-    git clone https://github.com/AngusWright/COSMOPIPE.git
+    git clone https://github.com/AngusWright/CosmoPipe.git
   else 
-    cd ${ROOT}/INSTALL/COSMOPIPE
-    git pull 
-  fi 
+    cd ${ROOT}/INSTALL/CosmoPipe
+    git stash 
+    git pull
+  fi
+  cd ${ROOT}/INSTALL/CosmoPipe
+  git checkout ldacfilter.py
   cd ${ROOT}
   
-  bash INSTALL/CosmoPipe/COSMOLOGY_MASTER_INSTALL.sh \
+  bash INSTALL/CosmoPipe/COSMOPIPE_MASTER_INSTALL.sh \
     --noconfig \
     --packroot ${ROOT}/INSTALL/CosmoPipe/ \
     --runroot ${ROOT}/COSMOPIPE/ \
@@ -306,6 +312,25 @@ fi
 
 if [ "${1}" == "9" -o "${1}" == "" ]
 then
+
+  # fixed the file paths in the scripts
+  sed -i.bak 's/reweight_${RECALGRID}/${FILEBODY}/g' ${ROOT}/COSMOPIPE/configure.sh
+  sed -i.bak "s/^RECALGRID=3x4x4/FILEBODY=V1.0.0A_ugriZYJHKs_photoz_SG_mask_LF_svn_309c_2Dbins_v2  #/g" ${ROOT}/COSMOPIPE/configure.sh
+  sed -i.bak 's/\\\@RECALGRID\\\@#${RECALGRID}/\\\@FILEBODY\\\@#${FILEBODY}/g' ${ROOT}/COSMOPIPE/configure.sh
+  
+  sed -i.bak "s/reweight_\@RECALGRID\@/\@FILEBODY\@/g" ${ROOT}/INSTALL/CosmoPipe/config/kv450_cf_likelihood_public/kv450_cf_likelihood_public.data
+  
+  sed -i.bak 's/reweight_${RECALGRID}/${FILEBODY}/g' ${ROOT}/INSTALL/CosmoPipe/scripts/configure_raw.sh
+  sed -i.bak 's/\\\@RECALGRID\\\@#${RECALGRID}/\\\@FILEBODY\\\@#${FILEBODY}/g' ${ROOT}/INSTALL/CosmoPipe/scripts/configure_raw.sh
+
+  sed -i.bak "s/reweight_\@RECALGRID\@/\@FILEBODY\@/g" \
+    ${ROOT}/INSTALL/CosmoPipe/scripts/{calculate_2ptcorr.sh,create_cov_mat_corr_func.py,post_process_MCMC.sh,prepare_xis.sh,rebinned_corr_func_data_vec.py,run_COSMOLOGY_PIPELINE_raw.sh,run_covariance.sh}
+
+  # this is a bit more complicated: the naming convetion has changed in K1000 and there is no recalgrid anymore
+  sed -i.bak "s/\@RECALGRID\@/\@FILEBODY\@/g" ${ROOT}/INSTALL/CosmoPipe/scripts/{calculate_2ptcorr.sh,run_COSMOLOGY_PIPELINE_raw.sh}
+  sed -i.bak "s/^RECALGRID=\@RECALGRID\@/FILEBODY=\@FILEBODY\@/g" ${ROOT}/INSTALL/CosmoPipe/scripts/{calculate_2ptcorr.sh,configure_raw.sh}
+  sed -i.bak 's/\@SURVEY\@_%s_reweight_%s\@FILESUFFIX\@.cat/\@SURVEY\@_%s_%s\@FILESUFFIX\@.cat/g' ${ROOT}/INSTALL/CosmoPipe/scripts/ave_e_vs_ZB_rot.py
+
   #Update the configure files  /*fold*/ {{{
   for GoldSet in ${GOLDLIST} 
   do
@@ -313,58 +338,6 @@ then
     #Setup the Gold Set configurations  /*fold*/ {{{
     sed "s/@@GOLDSET@@/${GoldSet}/g" configure.sh > configure_${GoldSet}.sh 
     #/*fend*/}}}
-    
-    GoldSetLink=${GoldSet//_shift/}
-    GoldSetTail=${GoldSet//$GoldSetLink/}
-    if [ "${GoldSetLink}" == "NONE" -o "${GoldSet}" == "NONE_catastrophic" ]
-    then 
-      #Remove the shear subsetting (I.e. no gold selection!) /*fold*/ {{{
-      echo "Removing shear subset for ${GoldSet}"
-      sed -i.bak "s/Flag_SOM_${GoldSet}_NONE/NONE/g" configure_${GoldSet}.sh
-      #/*fend*/}}}
-    elif [ "${GoldSetTail}" == "_shift" ]
-    then 
-      #Remove the '_shift' from the subsetting & Nz /*fold*/ {{{
-      sed -i.bak "s/Flag_SOM_${GoldSet}_NONE/Flag_SOM_${GoldSetLink}_NONE/g" configure_${GoldSet}.sh
-      sed -i.bak "s/${GoldSet}_blindNONE/${GoldSetLink}_blindNONE/g" configure_${GoldSet}.sh
-      #/*fend*/}}}
-    elif [ "${GoldSet}" == "multispec3_shift" ]
-    then 
-      #Remove the '_shift' from the subsetting & Nz /*fold*/ {{{
-      sed -i.bak "s/Flag_SOM_multispec3_shift_NONE/Flag_SOM_multispec3_NONE/g" configure_${GoldSet}.sh
-      sed -i.bak "s/multispec3_shift_blindNONE/multispec3_blindNONE/g" configure_${GoldSet}.sh
-      #/*fend*/}}}
-    elif [ "${GoldSet}" == "noVVDS_shift" ]
-    then 
-      #Remove the '_shift' from the subsetting & Nz /*fold*/ {{{
-      sed -i.bak "s/Flag_SOM_noVVDS_shift_NONE/Flag_SOM_noVVDS_NONE/g" configure_${GoldSet}.sh
-      sed -i.bak "s/noVVDS_shift_blindNONE/noVVDS_blindNONE/g" configure_${GoldSet}.sh
-      #/*fend*/}}}
-    elif [ "${GoldSet}" == "nozCOSMOS_shift" ]
-    then 
-      #Remove the '_shift' from the subsetting & Nz /*fold*/ {{{
-      sed -i.bak "s/Flag_SOM_nozCOSMOS_shift_NONE/Flag_SOM_nozCOSMOS_NONE/g" configure_${GoldSet}.sh
-      sed -i.bak "s/nozCOSMOS_shift_blindNONE/nozCOSMOS_blindNONE/g" configure_${GoldSet}.sh
-      #/*fend*/}}}
-    elif [ "${GoldSet}" == "noDEEP2_shift" ]
-    then 
-      #Remove the '_shift' from the subsetting & Nz /*fold*/ {{{
-      sed -i.bak "s/Flag_SOM_noDEEP2_shift_NONE/Flag_SOM_noDEEP2_NONE/g" configure_${GoldSet}.sh
-      sed -i.bak "s/noDEEP2_shift_blindNONE/noDEEP2_blindNONE/g" configure_${GoldSet}.sh
-      #/*fend*/}}}
-    elif [ "${GoldSet}" == "Fid_shift" ]
-    then 
-      #Remove the '_shift' from the subsetting & Nz /*fold*/ {{{
-      sed -i.bak "s/Flag_SOM_Fid_shift_NONE/Flag_SOM_Fid_NONE/g" configure_${GoldSet}.sh
-      sed -i.bak "s/Fid_shift_blindNONE/Fid_blindNONE/g" configure_${GoldSet}.sh
-      #/*fend*/}}}
-    elif [ "${GoldSet}" == "Fid_oldmcorr" ]
-    then 
-      #Remove the '_oldmcorr' from the subsetting  /*fold*/ {{{
-      sed -i.bak "s/Flag_SOM_Fid_oldmcorr_NONE/Flag_SOM_Fid_NONE/g" configure_${GoldSet}.sh
-      sed -i.bak "s/Fid_oldmcorr_blindNONE/Fid_blindNONE/g" configure_${GoldSet}.sh
-      #/*fend*/}}}
-    fi 
     
     #For each selection, link the shear data  /*fold*/ {{{
     mkdir -p GoldSet_${GoldSet}/
@@ -378,55 +351,83 @@ then
     
     mkdir -p PatchData/
     cd PatchData/
-    ln -s ${ROOT}/${OUTPUTDIR}/${PHOTCAT_ALL_GOLD//${PATCHALL}/*} .
+    if [ "${GoldSet}" == "ORIG" ]
+    then
+      ################## LINK THE DR4 Photometric data Here ############################
+      ${DIR_LDAC}/ldacdelkey${THELI} \
+        -i /net/fohlen12/home/awright/KiDS/DR4/DIR/Iteration2/GoldClasses/K1000_NS_V1.0.0A_ugriZYJHKs_photoz_SG_mask_LF_svn_309c_2Dbins_v2_goldclasses.cat \
+        -t OBJECTS -k PSFeabs \
+        -o ${PHOTCAT_ALL_GOLD}
+      ###Separate the N & S
+      #Recreate all patchwise catalogues  /*fold*/ {{{
+      for PATCHNUM in `seq ${NPATCH}`
+      do 
+        #Get the patch definitions 
+        PATCH=`echo $PATCHLIST | awk -v n=${PATCHNUM} '{print $n}'`
+        TMPLO=`echo $PATCHLO   | awk -v n=${PATCHNUM} '{print $n}'`
+        TMPHI=`echo $PATCHHI   | awk -v n=${PATCHNUM} '{print $n}'`
+        #Filter the ALLPATCH catalogue on RA
+        if [ $TMPLO -lt $TMPHI ]
+        then 
+          #Normal RA limits: pick lo < RA <= hi 
+          ${P_LDACFILTER} -i ${PHOTCAT_ALL_GOLD} -o ${PHOTCAT_ALL_GOLD//${PATCHALL}/${PATCH}} \
+            -c "((ALPHA_J2000>${TMPLO})AND(ALPHA_J2000<=${TMPHI}));"
+        else 
+          #RA limits cross the RA=0 boundary: pick (RA > lo | RA <= hi)
+          ${P_LDACFILTER} -i ${PHOTCAT_ALL_GOLD} -o ${PHOTCAT_ALL_GOLD//${PATCHALL}/${PATCH}} \
+            -c "((ALPHA_J2000>${TMPLO})OR(ALPHA_J2000<=${TMPHI}));"
+        fi 
+      done
+      #/*fend*/}}}
+    else
+      ln -s ${ROOT}/${OUTPUTDIR}/${PHOTCAT_ALL_GOLD//${PATCHALL}/*} .
+    fi
     #/*fend*/}}}
     
     cd ${ROOT}/COSMOPIPE
-    #If we are running 'shift' chains, add the dz shifts to the config  /*fold*/ {{{
-    if [ "$GoldSet" == "NONE_shift" ]
-    then 
-      sed -i.bak "s/^DZPRIORMU=/DZPRIORMU='0.047 0.025 0.032 -0.004 -0.013'  #/g" configure_${GoldSet}.sh
-      sed -i.bak "s/^DZPRIORSD=/DZPRIORSD='0.010 0.008 0.010  0.008  0.008'  #/g" configure_${GoldSet}.sh
-    elif [ "$GoldSet" == "Fid_shift" ] 
-    then 
-      sed -i.bak "s/^DZPRIORMU=/DZPRIORMU='0.000 0.002 0.013 0.011 -0.006'  #/g" configure_${GoldSet}.sh
-      sed -i.bak "s/^DZPRIORSD=/DZPRIORSD='0.010 0.012 0.012 0.008  0.010'  #/g" configure_${GoldSet}.sh
-    elif [ "$GoldSet" == "nozCOSMOS_shift" ] 
-    then 
-      sed -i.bak "s/^DZPRIORMU=/DZPRIORMU='0.005 0.005 0.032 0.030 0.002'  #/g" configure_${GoldSet}.sh
-      sed -i.bak "s/^DZPRIORSD=/DZPRIORSD='0.026 0.016 0.014 0.010  0.012'  #/g" configure_${GoldSet}.sh
-    elif [ "$GoldSet" == "noVVDS_shift" ] 
-    then 
-      sed -i.bak "s/^DZPRIORMU=/DZPRIORMU='0.001 0.001 0.024 0.014 -0.007'  #/g" configure_${GoldSet}.sh
-      sed -i.bak "s/^DZPRIORSD=/DZPRIORSD='0.010 0.012 0.014 0.010  0.012'  #/g" configure_${GoldSet}.sh
-    elif [ "$GoldSet" == "noDEEP2_shift" ] 
-    then 
-      sed -i.bak "s/^DZPRIORMU=/DZPRIORMU='-0.001 0.002 -0.002 -0.009 -0.015'  #/g" configure_${GoldSet}.sh
-      sed -i.bak "s/^DZPRIORSD=/DZPRIORSD='0.010 0.012 0.012 0.010  0.010'  #/g" configure_${GoldSet}.sh
-    fi 
+    # sed -i.bak "s/^/  #/g" configure_${GoldSet}.sh
+    sed -i.bak "s|^COSMOFISHER=/path/to/CosmoFisherForecast/|COSMOFISHER=/net/home/fohlen12/awright/src/CosmoFisherForecast/  #|g" configure_${GoldSet}.sh
+    sed -i.bak "s/^DATE=/DATE=$(date +%Y-%m-%d)  #/g" configure_${GoldSet}.sh
+    sed -i.bak "s/^ALLPATCH=/ALLPATCH=${PATCHALL}  #/g" configure_${GoldSet}.sh
+    sed -i.bak "s/^PATCHLIST=/PATCHLIST=\"${PATCHLIST}\"  #/g" configure_${GoldSet}.sh
+    sed -i.bak "s/^SURVEY=/SURVEY=K1000  #/g" configure_${GoldSet}.sh
+    sed -i.bak "s/^SURVEYAREA=/SURVEYAREA=2.79864e+06  #/g" configure_${GoldSet}.sh
+    sed -i.bak "s/^DZPRIORMU=/DZPRIORMU='0.000 0.002 0.013 0.011 -0.006'  #/g" configure_${GoldSet}.sh
+    if [ "${GoldSet}" == "noDz" ]
+    then
+      sed -i.bak "s/^DZPRIORSD=/DZPRIORSD='0.0 0.0 0.0 0.0 0.0'  #/g" configure_${GoldSet}.sh
+    else
+      sed -i.bak "s/^DZPRIORSD=/DZPRIORSD='0.010 0.011 0.012 0.008 0.010'  #/g" configure_${GoldSet}.sh
+    fi
+    sed -i.bak "s/^BLIND=/BLIND=${BLINDS}  #/g" configure_${GoldSet}.sh
+    sed -i.bak "s/_blindNONE_TOMO/_blind${BLINDS}_TOMO  #/g" configure_${GoldSet}.sh
+    sed -i.bak "s|^STORAGEPATH=|STORAGEPATH=GoldSet_${GoldSet}/${STORAGEDIR}//  #|g" configure_${GoldSet}.sh
+    if [ "${GoldSet}" == "XIcuts" ]
+    then
+      sed -i.bak "s/^XIPLUSLIMS=/XIPLUSLIMS='0.5 300.0'  #/g" configure_${GoldSet}.sh
+      sed -i.bak "s/^XIMINUSLIMS=/XIMINUSLIMS='4.0 300.0'  #/g" configure_${GoldSet}.sh
+    fi
+    # catalogue specific
+    sed -i.bak "s/^FILESUFFIX=/FILESUFFIX=_goldclasses  #/g" configure_${GoldSet}.sh
+    sed -i.bak "s/^MASKFILE=/MASKFILE=KiDS_K1000_healpix.fits  #/g" configure_${GoldSet}.sh
+    sed -i.bak "s/^E1VAR=/E1VAR='autocal_e1_${BLINDS}'  #/g" configure_${GoldSet}.sh
+    sed -i.bak "s/^E2VAR=/E2VAR='autocal_e2_${BLINDS}'  #/g" configure_${GoldSet}.sh  
+    sed -i.bak "s/^XPIX=/XPIX='Xpos'  #/g" configure_${GoldSet}.sh  
+    sed -i.bak "s/^YPIX=/YPIX='Ypos'  #/g" configure_${GoldSet}.sh  
+    sed -i.bak "s/^GAAPFLAG=/GAAPFLAG='FLAG_GAAP_ugriZYJHKs'  #/g" configure_${GoldSet}.sh  
+    if [ "${GoldSet}" == "ORIG" ] || [ "${GoldSet}" == "XIcuts" ] || [ "${GoldSet}" == "noDz" ]
+    then
+      ######### USE THE Original Fiducial ###########
+      sed -i.bak "s/^SHEARSUBSET=/SHEARSUBSET=Flag_SOM_Fid_${BLINDS}  #/g" configure_${GoldSet}.sh
+    else
+      sed -i.bak "s/^SHEARSUBSET=/SHEARSUBSET=Flag_SOM_${GoldSet}_${BLINDS}  #/g" configure_${GoldSet}.sh
+    fi
+    sed -i.bak "s/^WEIGHTNAME=/WEIGHTNAME=recal_weight_${BLINDS}  #/g" configure_${GoldSet}.sh
     #/*fend*/}}}
     
     #Correct the mbias values for each Gold Set  /*fold*/ {{{
-    GoldSetLink=${GoldSet//_shift/}
-    if [ "$GoldSetLink" == "Fid" ] 
-    then 
-      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.0145 -0.0176 -0.0125 0.0045 0.0122'  #/g" configure_${GoldSet}.sh
-    elif [ "$GoldSetLink" == "noDEEP2" ] 
-    then 
-      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.0137 -0.0162 -0.0112 0.0054 0.0130'  #/g" configure_${GoldSet}.sh
-    elif [ "$GoldSetLink" == "noVVDS" ] 
-    then 
-      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.0143 -0.0172 -0.0116 0.0047 0.0125'  #/g" configure_${GoldSet}.sh
-    elif [ "$GoldSetLink" == "nozCOSMOS" ] 
-    then 
-      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.0143 -0.0159 -0.0106 0.0053 0.0135'  #/g" configure_${GoldSet}.sh
-    elif [ "$GoldSetLink" == "speczquality4" ] 
-    then 
-      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.0141 -0.0163 -0.0121 0.0043 0.0115'  #/g" configure_${GoldSet}.sh
-    elif [ "$GoldSetLink" == "multispec3" ] 
-    then 
-      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.0158 -0.0203 -0.0173 -0.0033 -0.0012'  #/g" configure_${GoldSet}.sh
-    fi 
+    sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.009 -0.011 -0.015 0.002 0.007'  #/g" configure_${GoldSet}.sh
+    sed -i.bak "s/^MBIASERRORS=/MBIASERRORS='0.019 0.020 0.017 0.012 0.010'  #/g" configure_${GoldSet}.sh
     #/*fend*/}}}
     
   done
@@ -438,13 +439,6 @@ if [ "${1}" == "10" -o "${1}" == "" ]
 then
   #Run the Gold Samples  /*fold*/ {{{
   cd ${ROOT}/${INPUTDIR}/
-  #Download and decompress the shear data products  /*fold*/ {{{
-  if [ ! -f KV450_COSMIC_SHEAR_DATA_RELEASE.tar.gz ]
-  then 
-    wget http://kids.strw.leidenuniv.nl/cs2018/KV450_COSMIC_SHEAR_DATA_RELEASE.tar.gz 
-    tar -xf KV450_COSMIC_SHEAR_DATA_RELEASE.tar.gz
-  fi 
-  #/*fend*/}}}
   
   for GoldSet in ${GOLDLIST}
   do
@@ -460,6 +454,12 @@ then
     bash configure_${GoldSet}.sh 
     mv -f run_COSMOLOGY_PIPELINE.sh run_COSMOLOGY_PIPELINE_${GoldSet}.sh 
     #/*fend*/}}}
+   
+    # fix CosmoFisherForecast
+    cd ${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/RUNTIME/scripts/CosmoFisherForecast/psvareos/proc
+    sed -i.bak "s/nmaxline_surveywindow 10000/nmaxline_surveywindow 20000/g" thps_func.c
+    make > ${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/rebuild_CosmoFisherForecast.log 2>&1
+    cd ${ROOT}/COSMOPIPE/
     
     #Prepare the Redshift distributions for the run  /*fold*/ {{{
     mkdir -p ${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/${STORAGEDIR}/
@@ -474,28 +474,31 @@ then
     done
     #/*fend*/}}}
     
-    if [ "${GoldSet}" == "NONE" -o "${GoldSet}" == "NONE_shift" -o "${GoldSet}" == "NONE_catastrophic" ]
-    then 
-      #Copy the KV450 DIR Redshift distributions to the NONE runs  /*fold*/ {{{
-      ln -s ${ROOT}/${INPUTDIR}/KV450_COSMIC_SHEAR_DATA_RELEASE/REDSHIFT_DISTRIBUTIONS/Nz_DIR/Nz_DIR_Mean/Nz_DIR_z0.1t0.3.asc \
-        ${PHOTCAT_ALL_DCOL//.cat/_${GoldSet}_blindNONE_TOMO}1_Nz.asc
-      ln -s ${ROOT}/${INPUTDIR}/KV450_COSMIC_SHEAR_DATA_RELEASE/REDSHIFT_DISTRIBUTIONS/Nz_DIR/Nz_DIR_Mean/Nz_DIR_z0.3t0.5.asc \
-        ${PHOTCAT_ALL_DCOL//.cat/_${GoldSet}_blindNONE_TOMO}2_Nz.asc
-      ln -s ${ROOT}/${INPUTDIR}/KV450_COSMIC_SHEAR_DATA_RELEASE/REDSHIFT_DISTRIBUTIONS/Nz_DIR/Nz_DIR_Mean/Nz_DIR_z0.5t0.7.asc \
-        ${PHOTCAT_ALL_DCOL//.cat/_${GoldSet}_blindNONE_TOMO}3_Nz.asc
-      ln -s ${ROOT}/${INPUTDIR}/KV450_COSMIC_SHEAR_DATA_RELEASE/REDSHIFT_DISTRIBUTIONS/Nz_DIR/Nz_DIR_Mean/Nz_DIR_z0.7t0.9.asc \
-        ${PHOTCAT_ALL_DCOL//.cat/_${GoldSet}_blindNONE_TOMO}4_Nz.asc
-      ln -s ${ROOT}/${INPUTDIR}/KV450_COSMIC_SHEAR_DATA_RELEASE/REDSHIFT_DISTRIBUTIONS/Nz_DIR/Nz_DIR_Mean/Nz_DIR_z0.9t1.2.asc \
-        ${PHOTCAT_ALL_DCOL//.cat/_${GoldSet}_blindNONE_TOMO}5_Nz.asc
-      #/*fend*/}}}
-    else 
-      #Copy the new SOM Redshift distributions to the Gold runs  /*fold*/ {{{
+    #Copy the new SOM Redshift distributions to the Gold runs  /*fold*/ {{{
+    if [ "${GoldSet}" == "ORIG" ]
+    then
+      rm -f *_Nz.asc
+      for fpath in /net/home/fohlen12/hendrik/KiDS/data_store/KiDS-1000/SOM_N_of_Z/K1000_NS*blind${BLINDS}*_Nz.asc
+      do
+        fbase=$(basename $fpath)
+        # remove the commented header in the n(z) file from the data store
+        tail -n +2 $fpath > $(echo "$fbase" | sed "s/_Fid_/_${GoldSet}_/g")
+      done
+    elif [ "${GoldSet}" == "XIcuts" ] || [ "${GoldSet}" == "noDz" ]
+    then
+      rm -f *_Nz.asc
+      for fpath in ${ROOT}/${OUTPUTDIR}/*Fid*_Nz.asc
+      do
+        fbase=$(basename $fpath)
+        ln -s ${fpath} $(echo "$fbase" | sed "s/_Fid_/_${GoldSet}_/g")
+      done
+    else
       GoldSetLink=${GoldSet//_shift/}
       GoldSetLink=${GoldSetLink//_oldmcorr/}
       rm -f *${GoldSetLink}*_Nz.asc
       ln -s ${ROOT}/${OUTPUTDIR}/*${GoldSetLink}*_Nz.asc . 
-      #/*fend*/}}}
-    fi 
+    fi
+    #/*fend*/}}}
     #/*fend*/}}}
     
     #Copy the KV450 Survey Mask  /*fold*/ {{{
@@ -505,12 +508,18 @@ then
     fi 
     cd ${ROOT}/COSMOPIPE/
     #/*fend*/}}}
+  done
+  #/*fend*/}}}
+fi
     
-    #IF running a catastrophic run, lower the number of live points  /*fold*/ {{{
-    if [ "${GoldSet}" == "NONE_catastrophic" ]
-    then 
-      sed -i.bak "s/NS_n_live_points 1000 /NS_n_live_points 400 /g" ${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/RUNTIME/scripts/run_MCMC.sh 
-    fi 
+if [ "${1}" == "11" -o "${1}" == "" ]
+then
+  #Run the Gold Samples  /*fold*/ {{{
+  for GoldSet in ${GOLDLIST}
+  do
+    cd ${ROOT}/COSMOPIPE/
+    #lower the number of live points for preliminary chains /*fold*/ {{{
+    sed -i.bak "s/NS_n_live_points 1000 /NS_n_live_points 200 /g" ${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/RUNTIME/scripts/run_MCMC.sh 
     #/*fend*/}}}
     
     #Check if we can launch another run  /*fold*/ {{{
@@ -536,7 +545,7 @@ then
   #/*fend*/}}}
 
   #Check if we can continue  /*fold*/ {{{
-  while [ `ps au | grep -v "bash -c " | grep -v grep | grep -c run_COSMOLOGY_PIPELINE` -ge ${MAXRUNS} ]
+  while [ `ps au | grep -v "bash -c " | grep -v grep | grep -c run_COSMOLOGY_PIPELINE` -ge 1 ]
   do
     #If this is the first loop of the wait, then print what is running  /*fold*/ {{{
     if [ "${prompt}" != "${GoldSet}" ]
@@ -552,8 +561,12 @@ then
 fi 
     
 #Construct the output figures and tables
-if [ "${1}" == "11" -o "${1}" == "" ]
+if [ "${1}" == "12" -o "${1}" == "" ]
 then 
+  export BLINDS
+  export STORAGEDIR
+  export GOLDLIST
+  export SURVEY="K1000"
   #Construct the Chain Directories 
   bash setup_chaindir.sh
   #Make the contour plot 

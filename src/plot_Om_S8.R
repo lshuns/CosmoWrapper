@@ -21,14 +21,14 @@ buff<-c(0.05,0.05)
 alpha<-c(0.8,0.5)
 text.cex<-0.8
 
-chains<-paste0("ChainDir/",c("GoldSet_NONE.txt","GoldSet_Fiducial.txt","GoldSet_NONE_shift.txt","GoldSet_noDEEP2.txt","base_plikHM_TTTEEE_lowl_lowE.txt"))
-labels<-c("KV450-DIR",expression(paste("SOM-Gold-Fiducial ",delta*italic(z))),expression(paste("KV450-DIR ",delta*italic(z))),expression(paste("SOM-Gold-noDEEP2 ",delta*italic(z))),"Planck-Legacy")
-plot.order<-c(1,4,2,3,5)
-legend.order<-c(1,4,3,2,5)
-doim<-c(F,F,F,F,F)
-plty<-rbind(c(3,2),c(1,1),c(1,1),c(1,1),c(1,1))
-fill<-c(F,T,T,F,T)
-joint.smoothing<-c(T,T,T,T,F)
+chains<-paste0("ChainDir/",c("GoldSet_Fid.txt","GoldSet_plusPAUS.txt","GoldSet_plusPAUSCOS15.txt","base_plikHM_TTTEEE_lowl_lowE.txt"))
+labels<-c(expression(paste("SOM-Gold-Fiducial ")),expression(paste("plusPAUS ")),expression(paste("plusPAUSCOS15 ")),"Planck-Legacy")
+plot.order<-c(1,2,3,4)
+legend.order<-c(1,2,3,4)
+doim<-c(F,F,F,F)
+plty<-rbind(c(3,2),c(1,1),c(1,1),c(1,1))
+fill<-c(F,T,T,T)
+joint.smoothing<-c(T,T,T,F)
 
 imset<-list('#000000', #KVD
             '#ff7f00', #FID
@@ -78,7 +78,7 @@ for (i in order(plot.order)) {
   if (i==plot.order[1]) { 
     #Start the plot from scratch
     plot(NA,type='n',xlim=c(xmin,xmax),ylim=c(ymin,ymax),xlab="",ylab="",axes=FALSE)
-    S8vec<-try(invisible(helpRfuncs::vecsplit(system(paste0("awk '/^S8/{i++}i==2{print $0; exit}' GoldSet_Fid_shift/work_KV450/MCMC/output/sci_UNBLINDED/parameter_table.txt"),intern=T),' ')))
+    S8vec<-try(invisible(helpRfuncs::vecsplit(system(paste0("awk '/^S8/{i++}i==2{print $0; exit}' GoldSet_Fid/work_K1000/MCMC/output/sci_C/parameter_table.txt"),intern=T),' ')))
     S8vec<-S8vec[which(S8vec!='')]
     S8vec<-gsub(',','',S8vec)
     S8<-as.numeric(S8vec[2])

@@ -6,8 +6,8 @@
 library(matrixStats) 
 
 #Define the base variables 
-chaindir.base<-'COSMOPIPE/GoldSet_GOLDSET/work_KV450/MCMC/output/sci_UNBLINDED/'
-chainfile<-'KV450__HEADER.txt'
+chaindir.base<-'COSMOPIPE/GoldSet_GOLDSET/work_K1000/MCMC/output/sci_C/'
+chainfile<-'K1000__HEADER.txt'
 parameters<-c("D_z1","D_z2","D_z3","D_z4","D_z5","A_IA","Omega_m","sigma8","S8","n_s","Ac","h","ln10^{10}A_s")
 parameters<-c("A_IA","n_s","h","Omega_m","sigma8","S8","ln10^{10}A_s")
 param.expressions<-c("italic(A)[IA]","italic(n)[s]","h","Omega[m]","sigma[8]","italic(S)[8]","ln10^10*italic(A)[s]")
@@ -35,15 +35,13 @@ if (!interactive()) {
   goldsetlist<-helpRfuncs::vecsplit(readline(prompt="Enter the goldclass list: "),' ')
 }
 if (length(goldsetlist)==0) { 
-  goldsetlist<-c("noDEEP2_shift_small_error",'noDEEP2_shift')
-  goldsetlist<-c("NONE","NONE_shift","Fid_shift","noDEEP2_shift_small_error","nozCOSMOS","nozCOSMOS_shift",'noVVDS_shift','speczquality4','multispec3','noDEEP2_shift')
-  goldsetlist<-c("NONE","NONE_shift","Fid_shift","noDEEP2_shift","nozCOSMOS_shift",'noVVDS_shift','speczquality4','multispec3')
+  goldsetlist<-c("Fid","plusPAUS","plusPAUSCOS15")
 }
-fullsetlist<-c("NONE","NONE_shift","Fid_shift","noDEEP2_shift_small_error","nozCOSMOS","nozCOSMOS_shift",'noVVDS_shift','speczquality4','multispec3',"noDEEP2_shift",'noDEEP2','Fid')
-fullsetlabs<-c("KV450-DIR","KV450-DIR dz","SOM Fiducial dz","SOM noDEEP2 dz","SOM nozCOSMOS","SOM nozCOSMOS dz",'SOM noVVDS dz','SOM speczquality4','SOM multispec3',"SOM noDEEP2 dz",'SOM Fiducial')
-fullsetordr<-c(1,2,10,9,3,4,5,6,7,8,8)
-collist<-c("darkblue","darkred","orange","darkgreen",RColorBrewer::brewer.pal(8,"Set2"))
-fullcolordr<-c(1,2,3,9,9,5,6,8,9,7,9)
+fullsetlist<-c("Fid","plusPAUS","plusPAUSCOS15")
+fullsetlabs<-c("Fid","plusPAUS","plusPAUSCOS15")
+fullsetordr<-c(1,2,3)
+collist<-c('black',"orange","purple")
+fullcolordr<-c(1,2,3)
 
 gauss.priors<-colours<-prior<-chain<-list()
 
@@ -132,8 +130,10 @@ for (i in 1:length(parameters)) {
       xmin<-min(xmin,min(prior[[set]][[param]]$xrange))
       ymax<-max(ymax,prior[[set]][[param]]$eval$y)
     } 
-    xmax<-max(xmax,Hmisc::wtd.quantile(chain[[set]][[param]],weight=chain[[set]]$weight,normwt=TRUE,probs=0.999))
-    xmin<-min(xmin,Hmisc::wtd.quantile(chain[[set]][[param]],weight=chain[[set]]$weight,normwt=TRUE,probs=0.001))
+    #xmax<-max(xmax,Hmisc::wtd.quantile(chain[[set]][[param]],weight=chain[[set]]$weight,normwt=TRUE,probs=0.999))
+    #xmin<-min(xmin,Hmisc::wtd.quantile(chain[[set]][[param]],weight=chain[[set]]$weight,normwt=TRUE,probs=0.001))
+    xmax<-max(xmax,quantile(chain[[set]][[param]],probs=0.999))
+    xmin<-min(xmin,quantile(chain[[set]][[param]],probs=0.001))
     chaindens<-density(chain[[set]][[param]],weight=chain[[set]]$weight,n=100)
     labloc<-ifelse(which.max(chaindens$y)>length(chaindens$y)/2,'topleft','topright')
     ymax<-max(ymax,max(chaindens$y))

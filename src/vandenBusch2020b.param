@@ -7,36 +7,38 @@
 #Rscript binary
 P_RSCRIPT=`which Rscript`
 #LDAC tools folder 
-DIR_LDAC="/path/to/theli-1.30.0/bin/Linux_64/"
+DIR_LDAC="/net/home/fohlen12/hendrik/src/theli-1.30.0/bin/Linux_64/"
+#path to ldacfilter executable (if using ldacfilter.py instead of C version)
+P_LDACFILTER="/net/home/fohlen12/jlvdb/src/CosmoPipe/scripts/ldacfilter.py"
 #LDAC Commands Suffix
-THELI=""
+THELI="_theli"
 #Maximum number of simultaneous runs
 MAXRUNS=3
 
 #Inputs Directory 
 INPUTDIR="CosmoWrapper_Inputs/"
 OUTPUTDIR="CosmoWrapper_Outputs/"
-STORAGEDIR="work_KV450/"
+STORAGEDIR="work_K1000/"
 
 # Fiducial Spec Catalogue
-SPECCAT_ALL='KiDS_2018-07-26_deepspecz_photoz_10th_BLIND_specweight_1000_4.csv'
+SPECCAT_ALL='KiDS_specz_PAUS_COSMOS2015.csv'
 # Fiducial Phot Catalogue (with "ALLPATCH" Designation)
-PHOTCAT_ALL="KV450_GALL_reweight_3x4x4_v2_good.cat"
+PHOTCAT_ALL="K1000_NS_V1.0.0A_ugriZYJHKs_photoz_SG_mask_LF_svn_309c_2Dbins_v2.cat"
 # Survey Footprint Mask 
-MASKFILE="KiDS-NS_KV450_footprint_healpix.fits"
+MASKFILE="KiDS_K1000_healpix.fits"
 # ALLPATCH Designation 
-PATCHALL="GALL"
+PATCHALL="NS"
 # Individual PATCH Designations
-PATCHLIST="G9 G12 G15 G23 GS"
+PATCHLIST="N S"
 # PATCH Lower RA limits
-PATCHLO="125 145 200 240 10"
+PATCHLO="120 315"
 # PATCH Upper RA limits
-PATCHHI="145 200 240 10 125"
+PATCHHI="240 60"
 # Blind Designations  
-BLINDS="NONE" 
+BLINDS="C" 
 
 #Define the goldsets to analyse
-GOLDLIST="NONE NONE_shift Fid Fid_shift noDEEP2_shift noVVDS_shift nozCOSMOS_shift speczquality4 multispec3"
+GOLDLIST="ORIG Fid plusPAUS plusPAUSCOS15 plusPAUSCOS15lib nQ4 noDz XIcuts"
 
 #SOM Filename 
 SOMFILE="Spec_Train_Adapt_DIR_SOMdata.Rdata"
