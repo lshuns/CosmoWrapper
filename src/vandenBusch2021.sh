@@ -290,7 +290,7 @@ then
     git pull
   fi
   cd ${ROOT}/INSTALL/CosmoPipe
-  git checkout ldacfilter.py
+  git checkout K1000
   cd ${ROOT}
   
   bash INSTALL/CosmoPipe/COSMOPIPE_MASTER_INSTALL.sh \
