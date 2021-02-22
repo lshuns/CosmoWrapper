@@ -7,7 +7,7 @@
 set -e 
 
 #Source the default parameters file /*fold*/ {{{
-source vandenBusch2020b.param
+source vandenBusch2021.param
 #/*fend*/}}}
 
 #Define the root directory  /*fold*/ {{{
@@ -115,9 +115,10 @@ then
     if [ ! -d SOM_DIR ]
     then 
       git clone https://github.com/AngusWright/SOM_DIR.git
-    fi 
-    bash SOM_DIR/INSTALL.sh 
-    ln -s SOM_DIR/R/SOM_DIR.sh . 
+    fi
+    bash SOM_DIR/INSTALL.sh 2&>1 install_SOM_DIR.log
+    cd ${ROOT}
+    ln -s INSTALL/SOM_DIR/R/SOM_DIR.R . 
     #}}}
   fi 
   #Construct the Fiducial SOM  /*fold*/ {{{
@@ -264,11 +265,13 @@ then
     if [ $TMPLO -lt $TMPHI ]
     then 
       #Normal RA limits: pick lo < RA <= hi 
-      ${P_LDACFILTER} -i ${OUTPUTDIR}/${PHOTCAT_ALL_GOLD} -o ${OUTPUTDIR}/${PHOTCAT_ALL_GOLD//${PATCHALL}/${PATCH}} \
+      python3 ${P_LDACFILTER} \
+        -i ${OUTPUTDIR}/${PHOTCAT_ALL_GOLD} -o ${OUTPUTDIR}/${PHOTCAT_ALL_GOLD//${PATCHALL}/${PATCH}} \
         -c "((ALPHA_J2000>${TMPLO})AND(ALPHA_J2000<=${TMPHI}));"
     else 
       #RA limits cross the RA=0 boundary: pick (RA > lo | RA <= hi)
-      ${P_LDACFILTER} -i ${OUTPUTDIR}/${PHOTCAT_ALL_GOLD} -o ${OUTPUTDIR}/${PHOTCAT_ALL_GOLD//${PATCHALL}/${PATCH}} \
+      python3 ${P_LDACFILTER} \
+        -i ${OUTPUTDIR}/${PHOTCAT_ALL_GOLD} -o ${OUTPUTDIR}/${PHOTCAT_ALL_GOLD//${PATCHALL}/${PATCH}} \
         -c "((ALPHA_J2000>${TMPLO})OR(ALPHA_J2000<=${TMPHI}));"
     fi 
   done
@@ -297,40 +300,24 @@ then
     --noconfig \
     --packroot ${ROOT}/INSTALL/CosmoPipe/ \
     --runroot ${ROOT}/COSMOPIPE/ \
+    --cosmofisher ~awright/KiDS/src/CosmoKiDS/ \
     --storagepath GoldSet_@@GOLDSET@@/${STORAGEDIR}/ \
     --runtime GoldSet_@@GOLDSET@@/RUNTIME/ \
     --configpath GoldSet_@@GOLDSET@@/RUNTIME/config/ \
     --scriptpath GoldSet_@@GOLDSET@@/RUNTIME/scripts/ \
     --nzfileid ${PHOTCAT_ALL_DCOL//.cat/_@@GOLDSET@@_blindNONE_TOMO} \
     --nzfilesuffix _Nz.asc \
-    --shearsubset Flag_SOM_@@GOLDSET@@_NONE \
     --patchpath ${ROOT}/COSMOPIPE/GoldSet_@@GOLDSET@@/PatchData/ \
-    --filesuffix _v2_good_goldclasses \
-    --cosmopipecfname COSMOPIPE_CF_@@GOLDSET@@ 
+    --filebody ${FILEBODY} \
+    --filesuffix _goldclasses \
+    --surveyarea ${SURVEYAREA} \
+    --blind ${BLINDS} \
+    --blinding UNBLINDED
   #/*fend*/}}}
 fi
 
 if [ "${1}" == "9" -o "${1}" == "" ]
 then
-
-  # fixed the file paths in the scripts
-  sed -i.bak 's/reweight_${RECALGRID}/${FILEBODY}/g' ${ROOT}/COSMOPIPE/configure.sh
-  sed -i.bak "s/^RECALGRID=3x4x4/FILEBODY=V1.0.0A_ugriZYJHKs_photoz_SG_mask_LF_svn_309c_2Dbins_v2  #/g" ${ROOT}/COSMOPIPE/configure.sh
-  sed -i.bak 's/\\\@RECALGRID\\\@#${RECALGRID}/\\\@FILEBODY\\\@#${FILEBODY}/g' ${ROOT}/COSMOPIPE/configure.sh
-  
-  sed -i.bak "s/reweight_\@RECALGRID\@/\@FILEBODY\@/g" ${ROOT}/INSTALL/CosmoPipe/config/kv450_cf_likelihood_public/kv450_cf_likelihood_public.data
-  
-  sed -i.bak 's/reweight_${RECALGRID}/${FILEBODY}/g' ${ROOT}/INSTALL/CosmoPipe/scripts/configure_raw.sh
-  sed -i.bak 's/\\\@RECALGRID\\\@#${RECALGRID}/\\\@FILEBODY\\\@#${FILEBODY}/g' ${ROOT}/INSTALL/CosmoPipe/scripts/configure_raw.sh
-
-  sed -i.bak "s/reweight_\@RECALGRID\@/\@FILEBODY\@/g" \
-    ${ROOT}/INSTALL/CosmoPipe/scripts/{calculate_2ptcorr.sh,create_cov_mat_corr_func.py,post_process_MCMC.sh,prepare_xis.sh,rebinned_corr_func_data_vec.py,run_COSMOLOGY_PIPELINE_raw.sh,run_covariance.sh}
-
-  # this is a bit more complicated: the naming convetion has changed in K1000 and there is no recalgrid anymore
-  sed -i.bak "s/\@RECALGRID\@/\@FILEBODY\@/g" ${ROOT}/INSTALL/CosmoPipe/scripts/{calculate_2ptcorr.sh,run_COSMOLOGY_PIPELINE_raw.sh}
-  sed -i.bak "s/^RECALGRID=\@RECALGRID\@/FILEBODY=\@FILEBODY\@/g" ${ROOT}/INSTALL/CosmoPipe/scripts/{calculate_2ptcorr.sh,configure_raw.sh}
-  sed -i.bak 's/\@SURVEY\@_%s_reweight_%s\@FILESUFFIX\@.cat/\@SURVEY\@_%s_%s\@FILESUFFIX\@.cat/g' ${ROOT}/INSTALL/CosmoPipe/scripts/ave_e_vs_ZB_rot.py
-
   #Update the configure files  /*fold*/ {{{
   for GoldSet in ${GOLDLIST} 
   do
@@ -370,11 +357,13 @@ then
         if [ $TMPLO -lt $TMPHI ]
         then 
           #Normal RA limits: pick lo < RA <= hi 
-          ${P_LDACFILTER} -i ${PHOTCAT_ALL_GOLD} -o ${PHOTCAT_ALL_GOLD//${PATCHALL}/${PATCH}} \
+          python3 ${P_LDACFILTER} \
+            -i ${PHOTCAT_ALL_GOLD} -o ${PHOTCAT_ALL_GOLD//${PATCHALL}/${PATCH}} \
             -c "((ALPHA_J2000>${TMPLO})AND(ALPHA_J2000<=${TMPHI}));"
         else 
           #RA limits cross the RA=0 boundary: pick (RA > lo | RA <= hi)
-          ${P_LDACFILTER} -i ${PHOTCAT_ALL_GOLD} -o ${PHOTCAT_ALL_GOLD//${PATCHALL}/${PATCH}} \
+          python3 ${P_LDACFILTER} \
+            -i ${PHOTCAT_ALL_GOLD} -o ${PHOTCAT_ALL_GOLD//${PATCHALL}/${PATCH}} \
             -c "((ALPHA_J2000>${TMPLO})OR(ALPHA_J2000<=${TMPHI}));"
         fi 
       done
@@ -386,48 +375,18 @@ then
     
     cd ${ROOT}/COSMOPIPE
     # sed -i.bak "s/^/  #/g" configure_${GoldSet}.sh
-    sed -i.bak "s|^COSMOFISHER=/path/to/CosmoFisherForecast/|COSMOFISHER=/net/home/fohlen12/awright/src/CosmoFisherForecast/  #|g" configure_${GoldSet}.sh
-    sed -i.bak "s/^DATE=/DATE=$(date +%Y-%m-%d)  #/g" configure_${GoldSet}.sh
-    sed -i.bak "s/^ALLPATCH=/ALLPATCH=${PATCHALL}  #/g" configure_${GoldSet}.sh
-    sed -i.bak "s/^PATCHLIST=/PATCHLIST=\"${PATCHLIST}\"  #/g" configure_${GoldSet}.sh
-    sed -i.bak "s/^SURVEY=/SURVEY=K1000  #/g" configure_${GoldSet}.sh
-    sed -i.bak "s/^SURVEYAREA=/SURVEYAREA=2.79864e+06  #/g" configure_${GoldSet}.sh
     sed -i.bak "s/^DZPRIORMU=/DZPRIORMU='0.000 0.002 0.013 0.011 -0.006'  #/g" configure_${GoldSet}.sh
-    if [ "${GoldSet}" == "noDz" ]
-    then
-      sed -i.bak "s/^DZPRIORSD=/DZPRIORSD='0.0 0.0 0.0 0.0 0.0'  #/g" configure_${GoldSet}.sh
-    else
-      sed -i.bak "s/^DZPRIORSD=/DZPRIORSD='0.010 0.011 0.012 0.008 0.010'  #/g" configure_${GoldSet}.sh
-    fi
-    sed -i.bak "s/^BLIND=/BLIND=${BLINDS}  #/g" configure_${GoldSet}.sh
-    sed -i.bak "s/_blindNONE_TOMO/_blind${BLINDS}_TOMO  #/g" configure_${GoldSet}.sh
-    sed -i.bak "s|^STORAGEPATH=|STORAGEPATH=GoldSet_${GoldSet}/${STORAGEDIR}//  #|g" configure_${GoldSet}.sh
-    if [ "${GoldSet}" == "XIcuts" ]
-    then
-      sed -i.bak "s/^XIPLUSLIMS=/XIPLUSLIMS='0.5 300.0'  #/g" configure_${GoldSet}.sh
-      sed -i.bak "s/^XIMINUSLIMS=/XIMINUSLIMS='4.0 300.0'  #/g" configure_${GoldSet}.sh
-    fi
-    # catalogue specific
-    sed -i.bak "s/^FILESUFFIX=/FILESUFFIX=_goldclasses  #/g" configure_${GoldSet}.sh
-    sed -i.bak "s/^MASKFILE=/MASKFILE=KiDS_K1000_healpix.fits  #/g" configure_${GoldSet}.sh
-    sed -i.bak "s/^E1VAR=/E1VAR='autocal_e1_${BLINDS}'  #/g" configure_${GoldSet}.sh
-    sed -i.bak "s/^E2VAR=/E2VAR='autocal_e2_${BLINDS}'  #/g" configure_${GoldSet}.sh  
-    sed -i.bak "s/^XPIX=/XPIX='Xpos'  #/g" configure_${GoldSet}.sh  
-    sed -i.bak "s/^YPIX=/YPIX='Ypos'  #/g" configure_${GoldSet}.sh  
-    sed -i.bak "s/^GAAPFLAG=/GAAPFLAG='FLAG_GAAP_ugriZYJHKs'  #/g" configure_${GoldSet}.sh  
-    if [ "${GoldSet}" == "ORIG" ] || [ "${GoldSet}" == "XIcuts" ] || [ "${GoldSet}" == "noDz" ]
+    sed -i.bak "s/^DZPRIORSD=/DZPRIORSD='0.010 0.011 0.012 0.008 0.010'  #/g" configure_${GoldSet}.sh
+    sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.009 -0.011 -0.015 0.002 0.007'  #/g" configure_${GoldSet}.sh
+    sed -i.bak "s/^MBIASERRORS=/MBIASERRORS='0.019 0.020 0.017 0.012 0.010'  #/g" configure_${GoldSet}.sh
+    if [ "${GoldSet}" == "ORIG" ]
     then
       ######### USE THE Original Fiducial ###########
       sed -i.bak "s/^SHEARSUBSET=/SHEARSUBSET=Flag_SOM_Fid_${BLINDS}  #/g" configure_${GoldSet}.sh
     else
       sed -i.bak "s/^SHEARSUBSET=/SHEARSUBSET=Flag_SOM_${GoldSet}_${BLINDS}  #/g" configure_${GoldSet}.sh
     fi
-    sed -i.bak "s/^WEIGHTNAME=/WEIGHTNAME=recal_weight_${BLINDS}  #/g" configure_${GoldSet}.sh
     #/*fend*/}}}
-    
-    #Correct the mbias values for each Gold Set  /*fold*/ {{{
-    sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.009 -0.011 -0.015 0.002 0.007'  #/g" configure_${GoldSet}.sh
-    sed -i.bak "s/^MBIASERRORS=/MBIASERRORS='0.019 0.020 0.017 0.012 0.010'  #/g" configure_${GoldSet}.sh
     #/*fend*/}}}
     
   done
@@ -454,13 +413,7 @@ then
     bash configure_${GoldSet}.sh 
     mv -f run_COSMOLOGY_PIPELINE.sh run_COSMOLOGY_PIPELINE_${GoldSet}.sh 
     #/*fend*/}}}
-   
-    # fix CosmoFisherForecast
-    cd ${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/RUNTIME/scripts/CosmoFisherForecast/psvareos/proc
-    sed -i.bak "s/nmaxline_surveywindow 10000/nmaxline_surveywindow 20000/g" thps_func.c
-    make > ${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/rebuild_CosmoFisherForecast.log 2>&1
-    cd ${ROOT}/COSMOPIPE/
-    
+
     #Prepare the Redshift distributions for the run  /*fold*/ {{{
     mkdir -p ${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/${STORAGEDIR}/
     cd ${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/${STORAGEDIR}/
@@ -483,14 +436,6 @@ then
         fbase=$(basename $fpath)
         # remove the commented header in the n(z) file from the data store
         tail -n +2 $fpath > $(echo "$fbase" | sed "s/_Fid_/_${GoldSet}_/g")
-      done
-    elif [ "${GoldSet}" == "XIcuts" ] || [ "${GoldSet}" == "noDz" ]
-    then
-      rm -f *_Nz.asc
-      for fpath in ${ROOT}/${OUTPUTDIR}/*Fid*_Nz.asc
-      do
-        fbase=$(basename $fpath)
-        ln -s ${fpath} $(echo "$fbase" | sed "s/_Fid_/_${GoldSet}_/g")
       done
     else
       GoldSetLink=${GoldSet//_shift/}
@@ -519,7 +464,9 @@ then
   do
     cd ${ROOT}/COSMOPIPE/
     #lower the number of live points for preliminary chains /*fold*/ {{{
-    sed -i.bak "s/NS_n_live_points 1000 /NS_n_live_points 200 /g" ${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/RUNTIME/scripts/run_MCMC.sh 
+    #sed -i.bak "s/NS_n_live_points 1000 /NS_n_live_points 200 /g" ${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/RUNTIME/scripts/run_MCMC.sh 
+    sed -i.bak "s/live_points = 1000 /live_points = ${NLIVE} /g" ${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/RUNTIME/scripts/COSEBIs_chain.ini
+    sed -i.bak "s/tolerance = 0.01 /tolerance = ${TOLERANCE} /g" ${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/RUNTIME/scripts/COSEBIs_chain.ini
     #/*fend*/}}}
     
     #Check if we can launch another run  /*fold*/ {{{

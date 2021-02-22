@@ -71,8 +71,7 @@ nz.format<-'.fits'
 class.sets<-rbind(c("nQ4",             "phot$RedshiftGoldClass>=0","spec$z_Flag>=4"),
                   c("Fid",             "phot$RedshiftGoldClass>=0","spec$z_Flag>=3"),
                   c("plusPAUS",        "phot$RedshiftGoldClass>=0","spec$z_Flag>=2"),
-                  c("plusPAUSCOS15",   "phot$RedshiftGoldClass>=0","spec$z_Flag>=1"),
-                  c("plusPAUSCOS15lib","phot$RedshiftGoldClass>=0","spec$z_Flag>=0"))
+                  c("plusPAUSCOS15",   "phot$RedshiftGoldClass>=0","spec$z_Flag>=1"))
 #/*fend*/}}}
 
 #Define the datasets /*fold*/{{{
