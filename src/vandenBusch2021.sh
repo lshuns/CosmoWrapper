@@ -305,7 +305,7 @@ then
     --runtime GoldSet_@@GOLDSET@@/RUNTIME/ \
     --configpath GoldSet_@@GOLDSET@@/RUNTIME/config/ \
     --scriptpath GoldSet_@@GOLDSET@@/RUNTIME/scripts/ \
-    --nzfileid ${PHOTCAT_ALL_DCOL//.cat/_@@GOLDSET@@_blindNONE_TOMO} \
+    --nzfileid ${PHOTCAT_ALL_DCOL//.cat/_@@GOLDSET@@_blind${BLINDS}_TOMO} \
     --nzfilesuffix _Nz.asc \
     --patchpath ${ROOT}/COSMOPIPE/GoldSet_@@GOLDSET@@/PatchData/ \
     --filebody ${FILEBODY} \
@@ -338,6 +338,7 @@ then
     
     mkdir -p PatchData/
     cd PatchData/
+    cp /net/home/fohlen12/awright/KiDS/Cosmo/PatchData/SOM_cov_multiplied.asc ./
     if [ "${GoldSet}" == "ORIG" ]
     then
       ################## LINK THE DR4 Photometric data Here ############################
