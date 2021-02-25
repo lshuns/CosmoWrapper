@@ -8,6 +8,7 @@ set -e
 
 #Source the default parameters file /*fold*/ {{{
 source vandenBusch2021.param
+export OMP_NUM_THREADS=${MAXTHREADS}
 #/*fend*/}}}
 
 #Define the root directory  /*fold*/ {{{
