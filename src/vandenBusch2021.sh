@@ -128,7 +128,7 @@ then
     ${P_RSCRIPT} SOM_DIR.R \
       -r ${OUTPUTDIR}/${PHOTCAT_ALL_DCOL} -t ${OUTPUTDIR}/${SPECCAT_ALL_ADAPT} \
       --toroidal --topo hexagonal --som.dim 101 101 -np -fn Inf \
-      -sc 64 --only.som \
+      -sc ${MAXTHREADS} --only.som \
       -o ${OUTPUTDIR} -of ${SOMFILE//_SOMdata/} \
       --zr.label Z_B --zt.label Zbest \
       -k MAG_GAAP_u-MAG_GAAP_g \
@@ -175,7 +175,7 @@ then
       ${P_RSCRIPT} SOM_DIR.R \
         -r ${OUTPUTDIR}/${PHOTCAT_ALL_DCOL//_DIRcols.cat/_DIRcols_TOMO${TOMO}.fits} -t ${OUTPUTDIR}/${SPECCAT_ALL_ADAPT//_adapt/_adapt_TOMO${TOMO}} \
         --toroidal --topo hexagonal --som.dim 101 101 -np -fn Inf \
-        -sc 64 --optimise --refr.flag -cr recal_weight \
+        -sc ${MAXTHREADS} --optimise --refr.flag -cr recal_weight \
         --old.som ${OUTPUTDIR}/${SOMFILE} \
         -o ${OUTPUTDIR} -of ${SOMFILE//_SOMdata/_TOMO${TOMO}} \
         --zr.label Z_B --zt.label Zbest \
@@ -295,7 +295,12 @@ then
   cd ${ROOT}/INSTALL/CosmoPipe
   git checkout K1000
   cd ${ROOT}
-  
+
+  RESTORE_PATH=${PATH}
+  if [ "P_GCC" != "" ]
+  then
+    export PATH=${P_GCC}:${RESTORE_PATH}
+  fi
   bash INSTALL/CosmoPipe/COSMOPIPE_MASTER_INSTALL.sh \
     --noconfig \
     --packroot ${ROOT}/INSTALL/CosmoPipe/ \
@@ -313,6 +318,7 @@ then
     --surveyarea ${SURVEYAREA} \
     --blind ${BLINDS} \
     --blinding UNBLINDED
+  export PATH=${RESTORE_PATH}
   #/*fend*/}}}
 fi
 
@@ -466,8 +472,8 @@ then
     cd ${ROOT}/COSMOPIPE/
     #lower the number of live points for preliminary chains /*fold*/ {{{
     #sed -i.bak "s/NS_n_live_points 1000 /NS_n_live_points 200 /g" ${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/RUNTIME/scripts/run_MCMC.sh 
-    sed -i.bak "s/live_points = 1000 /live_points = ${NLIVE} /g" ${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/RUNTIME/scripts/COSEBIs_chain.ini
-    sed -i.bak "s/tolerance = 0.01 /tolerance = ${TOLERANCE} /g" ${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/RUNTIME/scripts/COSEBIs_chain.ini
+    sed -i.bak "s/live_points = 1000/live_points = ${NLIVE}/g" ${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/RUNTIME/scripts/COSEBIs_chain.ini
+    sed -i.bak "s/tolerance = 0.01/tolerance = ${TOLERANCE}/g" ${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/RUNTIME/scripts/COSEBIs_chain.ini
     #/*fend*/}}}
     
     #Check if we can launch another run  /*fold*/ {{{
@@ -507,22 +513,38 @@ then
   echo "Running Post-processing (`date`)" 
   #/*fend*/}}}
 fi 
-    
+
 #Construct the output figures and tables
 if [ "${1}" == "12" -o "${1}" == "" ]
 then 
-  export BLINDS
-  export STORAGEDIR
-  export GOLDLIST
-  export SURVEY="K1000"
   #Construct the Chain Directories 
-  bash setup_chaindir.sh
-  #Make the contour plot 
-  ${P_RSCRIPT} plot_Om_S8.R 
-  #Make the stackplot 
-  ${P_RSCRIPT} stackplot.R > S8_constraints.txt
-  #Construct the marginal constraints 
-  ${P_RSCRIPT} compare_marginals.R > marginal_constraints.txt 
+  cd ${ROOT}
+  #Remove any previous chain directories
+  if [ -d ChainDir ]
+  then 
+    rm -fr ChainDir
+  fi 
+  #Construct the chain directory
+  mkdir ChainDir
+  cd ChainDir
+  #Get the planck contour data
+  if [ ! -f base-plikHM-TTTEEE-lowl-lowE_R3.00.zip ]
+  then
+    wget https://pla.esac.esa.int/pla/aio/product-action?COSMOLOGY.FILE_ID=COM_CosmoParams_base-plikHM-TTTEEE-lowl-lowE_R3.00.zip -O base-plikHM-TTTEEE-lowl-lowE_R3.00.zip 
+    unzip base-plikHM-TTTEEE-lowl-lowE_R3.00.zip
+  fi
+  cat base/plikHM_TTTEEE_lowl_lowE/base_plikHM_TTTEEE_lowl_lowE_?.txt > base_plikHM_TTTEEE_lowl_lowE.txt
+  ln -s base/plikHM_TTTEEE_lowl_lowE/base_plikHM_TTTEEE_lowl_lowE.paramnames . 
+  #Link the completed goldsets
+  if [ "$BLINDS" == "NONE" ]
+  then
+    BLINDS="UNBLINDED"
+  fi
+  for GoldSet in ${GOLDLIST}
+  do
+    ln -sf ../COSMOPIPE/GoldSet_${GoldSet}/${STORAGEDIR}/MCMC/output/sci_${BLINDS}/${SURVEY}__HEADER.txt GoldSet_${GoldSet}.txt  
+    ln -sf ../COSMOPIPE/GoldSet_${GoldSet}/${STORAGEDIR}/MCMC/output/sci_${BLINDS}/${SURVEY}__HEADER.paramnames GoldSet_${GoldSet}.paramnames  
+  done
 fi 
 
 
