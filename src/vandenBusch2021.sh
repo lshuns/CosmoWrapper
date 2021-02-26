@@ -386,23 +386,25 @@ then
     sed -i.bak "s/^DZPRIORMU=/DZPRIORMU='0.000 0.002 0.013 0.011 -0.006'  #/g" configure_${GoldSet}.sh
     sed -i.bak "s/^DZPRIORSD=/DZPRIORSD='0.010 0.011 0.012 0.008 0.010'  #/g" configure_${GoldSet}.sh
     if [ "${GoldSet}" == "Fid" ]
-      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.009 -0.011 -0.015  0.002  0.007'  #/g" configure_${GoldSet}.sh
-      sed -i.bak "s/^MBIASERRORS=/MBIASERRORS=' 0.019  0.020  0.017  0.012  0.010'  #/g" configure_${GoldSet}.sh
-    else if [ "${GoldSet}" == "plusPAUS" ]
-      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.009 -0.011 -0.015  0.002  0.007'  #/g" configure_${GoldSet}.sh
-      sed -i.bak "s/^MBIASERRORS=/MBIASERRORS=' 0.019  0.020  0.017  0.012  0.010'  #/g" configure_${GoldSet}.sh
     then
-    else if [ "${GoldSet}" == "plusPAUSCOS15" ]
       sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.009 -0.011 -0.015  0.002  0.007'  #/g" configure_${GoldSet}.sh
       sed -i.bak "s/^MBIASERRORS=/MBIASERRORS=' 0.019  0.020  0.017  0.012  0.010'  #/g" configure_${GoldSet}.sh
+    elif [ "${GoldSet}" == "plusPAUS" ]
     then
-    else if [ "${GoldSet}" == "nQ4" ]
       sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.009 -0.011 -0.015  0.002  0.007'  #/g" configure_${GoldSet}.sh
       sed -i.bak "s/^MBIASERRORS=/MBIASERRORS=' 0.019  0.020  0.017  0.012  0.010'  #/g" configure_${GoldSet}.sh
+    elif [ "${GoldSet}" == "plusPAUSCOS15" ]
     then
+      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.009 -0.011 -0.015  0.002  0.007'  #/g" configure_${GoldSet}.sh
+      sed -i.bak "s/^MBIASERRORS=/MBIASERRORS=' 0.019  0.020  0.017  0.012  0.010'  #/g" configure_${GoldSet}.sh
+    elif [ "${GoldSet}" == "nQ4" ]
+    then
+      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.009 -0.011 -0.015  0.002  0.007'  #/g" configure_${GoldSet}.sh
+      sed -i.bak "s/^MBIASERRORS=/MBIASERRORS=' 0.019  0.020  0.017  0.012  0.010'  #/g" configure_${GoldSet}.sh
     else
       sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.009 -0.011 -0.015  0.002  0.007'  #/g" configure_${GoldSet}.sh
       sed -i.bak "s/^MBIASERRORS=/MBIASERRORS=' 0.019  0.020  0.017  0.012  0.010'  #/g" configure_${GoldSet}.sh
+    fi
     if [ "${GoldSet}" == "ORIG" ]
     then
       ######### USE THE Original Fiducial ###########
