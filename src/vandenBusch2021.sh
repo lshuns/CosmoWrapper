@@ -520,22 +520,17 @@ if [ "${1}" == "12" -o "${1}" == "" ]
 then 
   #Construct the Chain Directories 
   cd ${ROOT}
-  #Remove any previous chain directories
-  if [ -d ChainDir ]
-  then 
-    rm -fr ChainDir
-  fi 
   #Construct the chain directory
-  mkdir ChainDir
+  mkdir -p ChainDir
   cd ChainDir
   #Get the planck contour data
   if [ ! -f base-plikHM-TTTEEE-lowl-lowE_R3.00.zip ]
   then
     wget https://pla.esac.esa.int/pla/aio/product-action?COSMOLOGY.FILE_ID=COM_CosmoParams_base-plikHM-TTTEEE-lowl-lowE_R3.00.zip -O base-plikHM-TTTEEE-lowl-lowE_R3.00.zip 
     unzip base-plikHM-TTTEEE-lowl-lowE_R3.00.zip
+    cat base/plikHM_TTTEEE_lowl_lowE/base_plikHM_TTTEEE_lowl_lowE_?.txt > base_plikHM_TTTEEE_lowl_lowE.txt
+    ln -s base/plikHM_TTTEEE_lowl_lowE/base_plikHM_TTTEEE_lowl_lowE.paramnames . 
   fi
-  cat base/plikHM_TTTEEE_lowl_lowE/base_plikHM_TTTEEE_lowl_lowE_?.txt > base_plikHM_TTTEEE_lowl_lowE.txt
-  ln -s base/plikHM_TTTEEE_lowl_lowE/base_plikHM_TTTEEE_lowl_lowE.paramnames . 
   #Link the completed goldsets
   for GoldSet in ${GOLDLIST}
   do
