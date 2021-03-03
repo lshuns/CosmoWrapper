@@ -352,7 +352,7 @@ if (!file.exists(outname.phot)|!file.exists(outname.spec)) {
       spec[[paste0("RedshiftGoldClass_",blind)]]<-0
       #/*fend*/}}}
       #Loop through nQ flags /*fold*/ {{{
-      for (nQ in c(3,4)) { 
+      for (nQ in c(1,2,3,4)) { 
         cat(paste0("nQ≥",nQ,' only & blind ',blind,' & '))
         #Loop through the tomographic bins /*fold*/{{{
         for (tomo in 1:maxBin) { 
