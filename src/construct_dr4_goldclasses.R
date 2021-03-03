@@ -252,7 +252,7 @@ phot.good.rows<-matrixStats::rowAlls(phot[,paste0('MAG_GAAP_',c('u','g','r','i',
 #Parse the full spectro cat to the Fiducial SOM /*fold*/{{{
 if (!exists('spec.fid.som')) { 
   cat("Parse Spec Data\n")
-  spec.fid.som<-kohparse(som=fid.som,data=spec,data.missing=-99,data.threshold=c(0,40),n.cores=32)
+  spec.fid.som<-kohparse(som=fid.som,data=spec,data.missing=-99,data.threshold=c(0,40),n.cores=64)
 } else { 
   cat("Using 'spec.fid.som' from Global Environment!\n")
 }
@@ -263,7 +263,7 @@ if (nrow(phot)!=length(fid.som$unit.classif)) {
   if (!exists("phot.fid.som")) { 
     #Parse the full Photom cat to the Fiducial SOM
     cat("Parse phot Data\n")
-    phot.fid.som<-kohparse(som=fid.som,data=phot,data.missing=-99,data.threshold=c(0,40),n.cores=32)
+    phot.fid.som<-kohparse(som=fid.som,data=phot,data.missing=-99,data.threshold=c(0,40),n.cores=64)
   } else { 
   cat("Using 'phot.fid.som' from Global Environment!\n")
   }
@@ -306,17 +306,17 @@ if (!file.exists(outname.phot)|!file.exists(outname.spec)) {
           phot.index<-which(phot$Z_B>tomo.lim[tomo] & phot$Z_B<=tomo.lim[tomo+1] & phot[[blind.count.variable]]>0 & phot.good.rows)
           #/*fend*/}}}
           #Generate the SOM groupings /*fold*/{{{
-          spec.tmp.som<-generate.kohgroups(spec.fid.som,n.cluster.bins=tomo.bin[tomo],n.cores=32,subset=spec.index,quiet=T)
-          phot.tmp.som<-generate.kohgroups(phot.fid.som,n.cluster.bins=tomo.bin[tomo],n.cores=32,subset=phot.index,quiet=T)
+          spec.tmp.som<-generate.kohgroups(spec.fid.som,n.cluster.bins=tomo.bin[tomo],n.cores=64,subset=spec.index,quiet=T)
+          phot.tmp.som<-generate.kohgroups(phot.fid.som,n.cluster.bins=tomo.bin[tomo],n.cores=64,subset=phot.index,quiet=T)
           #/*fend*/}}}
           #Generate the weights /*fold*/{{{
           spec.tmp.weights<-generate.kohgroup.property(som=spec.tmp.som,
                                                        data=spec,
-                                                       n.cluster.bins=tomo.bin[tomo],n.cores=32,
+                                                       n.cluster.bins=tomo.bin[tomo],n.cores=64,
                                                        expression="nrow(data)",quiet=TRUE)$property$value.1
           phot.tmp.weights<-generate.kohgroup.property(som=phot.tmp.som,
                                                        data=phot,
-                                                       n.cluster.bins=tomo.bin[tomo],n.cores=32,
+                                                       n.cluster.bins=tomo.bin[tomo],n.cores=64,
                                                        expression="sum(data[[blind.count.variable]])",quiet=TRUE)$property$value.1
           tmp.weights<-phot.tmp.weights/spec.tmp.weights
           tmp.weights<-list(refr.weight=1/tmp.weights[phot.tmp.som$clust.classif],train.weight=tmp.weights[spec.tmp.som$clust.classif])
@@ -363,17 +363,17 @@ if (!file.exists(outname.phot)|!file.exists(outname.spec)) {
           phot.index<-which(phot$Z_B>tomo.lim[tomo] & phot$Z_B<=tomo.lim[tomo+1] & phot[[blind.count.variable]]>0 & phot.good.rows)
           #/*fend*/}}}
           #Generate the SOM groupings /*fold*/{{{
-          spec.tmp.som<-generate.kohgroups(spec.fid.som,n.cluster.bins=tomo.bin[tomo],n.cores=32,subset=spec.index,quiet=TRUE)
-          phot.tmp.som<-generate.kohgroups(phot.fid.som,n.cluster.bins=tomo.bin[tomo],n.cores=32,subset=phot.index,quiet=TRUE)
+          spec.tmp.som<-generate.kohgroups(spec.fid.som,n.cluster.bins=tomo.bin[tomo],n.cores=64,subset=spec.index,quiet=TRUE)
+          phot.tmp.som<-generate.kohgroups(phot.fid.som,n.cluster.bins=tomo.bin[tomo],n.cores=64,subset=phot.index,quiet=TRUE)
           #/*fend*/}}}
           #Generate the weights /*fold*/{{{
           spec.tmp.weights<-generate.kohgroup.property(som=spec.tmp.som,
                                                        data=spec,
-                                                       n.cluster.bins=tomo.bin[tomo],n.cores=32,
+                                                       n.cluster.bins=tomo.bin[tomo],n.cores=64,
                                                        expression="nrow(data)",quiet=TRUE)$property$value.1
           phot.tmp.weights<-generate.kohgroup.property(som=phot.tmp.som,
                                                        data=phot,
-                                                       n.cluster.bins=tomo.bin[tomo],n.cores=32,
+                                                       n.cluster.bins=tomo.bin[tomo],n.cores=64,
                                                        expression="sum(data[[blind.count.variable]])",quiet=TRUE)$property$value.1
           tmp.weights<-phot.tmp.weights/spec.tmp.weights
           tmp.weights<-list(refr.weight=1/tmp.weights[phot.tmp.som$clust.classif],train.weight=tmp.weights[spec.tmp.som$clust.classif])
@@ -525,14 +525,14 @@ for (blind in blind.list) {
       #/*fend*/}}}
       #Group the SOM pixels and calculate the properties /*fold*/{{{
       #Run the spec expressions {{{
-      spec.tmp.vals<-generate.kohgroup.property(som=spec.fid.som,data=spec,n.cluster.bins=tomo.bin[tomo],n.cores=32,subset=spec.index,
+      spec.tmp.vals<-generate.kohgroup.property(som=spec.fid.som,data=spec,n.cluster.bins=tomo.bin[tomo],n.cores=64,subset=spec.index,
                                                   expression=c(blind.spec.expression,"nrow(data)"),
                                                   expr.label=c(names(blind.spec.expression),"Nspec"),quiet=TRUE)
       spec.tmp.groups<-spec.tmp.vals$som$clust.classif
       qc.frame<-as.data.table(spec.tmp.vals$property)
       #}}}
       #Run the phot expressions {{{
-      phot.tmp.vals<-generate.kohgroup.property(phot.fid.som,data=phot,n.cluster.bins=tomo.bin[tomo],n.cores=32,subset=phot.index,
+      phot.tmp.vals<-generate.kohgroup.property(phot.fid.som,data=phot,n.cluster.bins=tomo.bin[tomo],n.cores=64,subset=phot.index,
                                                   expression=c(blind.phot.expression,'sum(data[[blind.count.variable]])'),
                                                   expr.label=c(names(blind.phot.expression),"sumLFweight"),quiet=TRUE)
       phot.tmp.groups<-phot.tmp.vals$som$clust.classif
