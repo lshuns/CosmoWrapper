@@ -222,12 +222,44 @@ then
       >> ${OUTPUTDIR}/construct_dr4_goldclasses.log
     ${P_RSCRIPT} get_SOM_cellcounts.R \
       ${OUTPUTDIR}/${SOMFILE} \
-      ${OUTPUTDIR}/${SPECCAT_ALL_ADAPT//.cat/_allgoldclass.fits}
+      ${OUTPUTDIR}/${SPECCAT_ALL_ADAPT//.fits/_allgoldclass.fits}
     ${P_RSCRIPT} get_SOM_cellcounts.R \
       ${OUTPUTDIR}/${SOMFILE} \
       ${OUTPUTDIR}/${PHOTCAT_ALL_DCOL//.cat/_allgoldclass.fits} \
   else 
     echo "Gold Catalogues Already Exists! Skipping!" 
+  fi 
+  #/*fend*/}}}
+fi
+
+#### this is only for the m-bias calibration ####
+if [ "${1}" == "5a" -o "${1}" == "" ]
+then
+  outputdirMBIAS="output_for_mbias"
+  ##Construct the Gold Classes  /*fold*/ {{{
+  if [ ! -d ${outputdirMBIAS}/ ]
+  then
+    mkdir ${outputdirMBIAS}
+    for cosmosfile in /net/home/fohlen12/awright/KiDS/DR4/DIR/Iteration1/COSMOS/COSMOSadaptdepth_ugri.V0.5.9A_ZYJHK.V2.0_photoz_LF_mask_SG_recalweight{,_goodgals_3x4x4}.cat
+    do
+      cosmosbase=$(basename ${cosmosfile})
+      adaptfile=${outputdirMBIAS}/${cosmosbase//.cat/_adapt.fits}
+      echo "==> processing ${cosmosbase}"
+      echo "Constructing COSMOS Adapt Catalogue {"
+      ${P_RSCRIPT} construct_adapt_catalogue.R ${cosmosfile} ${adaptfile}
+      echo "} - Done" 
+      echo "Constructing the COSMOS Goldclass subsets" 
+      time ${P_RSCRIPT} construct_dr4_goldclasses.R \
+        -p ${adaptfile} \
+        -s ${OUTPUTDIR}/${SPECCAT_ALL_ADAPT} \
+        --som ${OUTPUTDIR}/${SOMFILE} \
+        --blinds "NONE" \
+        --outputpath ${outputdirMBIAS}/ \
+        --nzformat .asc \
+        >> ${outputdirMBIAS}/construct_cosmos_goldclasses.log
+      done
+  else 
+    echo "Gold Catalogues for COSMOS Already Exist! Skipping!" 
   fi 
   #/*fend*/}}}
 fi
