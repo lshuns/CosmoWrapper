@@ -425,21 +425,42 @@ then
     sed -i.bak "s/^DZPRIORSD=/DZPRIORSD='0.010 0.011 0.012 0.008 0.010'  #/g" configure_${GoldSet}.sh
     if [ "${GoldSet}" == "Fid" ]
     then
-      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.009 -0.011 -0.015  0.002  0.007'  #/g" configure_${GoldSet}.sh
-      sed -i.bak "s/^MBIASERRORS=/MBIASERRORS=' 0.019  0.020  0.017  0.012  0.010'  #/g" configure_${GoldSet}.sh
+      # bin1: -0.0024042816724431223 0.008724794712632043
+      # bin2: -0.002501150350315491 0.0063969003179527
+      # bin3: -0.00685470446054173 0.006292172559930154
+      # bin4: 0.010229852017836404 0.006147906619923218
+      # bin5: 0.012993103800914254 0.008050271786882345
+      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.0024 -0.0025 -0.0069  0.0102  0.0130'  #/g" configure_${GoldSet}.sh
+      sed -i.bak "s/^MBIASERRORS=/MBIASERRORS=' 0.0087  0.0064  0.0063  0.0061  0.0081'  #/g" configure_${GoldSet}.sh
     elif [ "${GoldSet}" == "plusPAUS" ]
     then
-      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.009 -0.011 -0.015  0.002  0.007'  #/g" configure_${GoldSet}.sh
-      sed -i.bak "s/^MBIASERRORS=/MBIASERRORS=' 0.019  0.020  0.017  0.012  0.010'  #/g" configure_${GoldSet}.sh
+      # bin1: -0.002171057116503219 0.008717400175015723
+      # bin2: -0.0016860968524286463 0.006412983511174887
+      # bin3: -0.0077070289110846395 0.006335808424363737
+      # bin4: 0.010635055726325301 0.006149581891203765
+      # bin5: 0.012983676371220535 0.00809991583635404
+      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.0022 -0.0017 -0.0077  0.0106  0.0130'  #/g" configure_${GoldSet}.sh
+      sed -i.bak "s/^MBIASERRORS=/MBIASERRORS=' 0.0087  0.0064  0.0063  0.0061  0.0081'  #/g" configure_${GoldSet}.sh
     elif [ "${GoldSet}" == "plusPAUSCOS15" ]
     then
-      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.009 -0.011 -0.015  0.002  0.007'  #/g" configure_${GoldSet}.sh
-      sed -i.bak "s/^MBIASERRORS=/MBIASERRORS=' 0.019  0.020  0.017  0.012  0.010'  #/g" configure_${GoldSet}.sh
+      # bin1: -0.0018898741145994013 0.008777352805188921
+      # bin2: 0.0003159890059065737 0.006183118147096146
+      # bin3: -0.008448876727234803 0.006208605195139244
+      # bin4: 0.011335427668863219 0.006173932612881981
+      # bin5: 0.012542488559456564 0.008075147075564039
+      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.0019  0.0003 -0.0084  0.0113  0.0125'  #/g" configure_${GoldSet}.sh
+      sed -i.bak "s/^MBIASERRORS=/MBIASERRORS=' 0.0088  0.0062  0.0062  0.0062  0.0081'  #/g" configure_${GoldSet}.sh
     elif [ "${GoldSet}" == "nQ4" ]
     then
-      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.009 -0.011 -0.015  0.002  0.007'  #/g" configure_${GoldSet}.sh
-      sed -i.bak "s/^MBIASERRORS=/MBIASERRORS=' 0.019  0.020  0.017  0.012  0.010'  #/g" configure_${GoldSet}.sh
+      # bin1: -0.0018115034786705842 0.008998232342565568
+      # bin2: -0.003125412654839168 0.006442519245537858
+      # bin3: -0.006691561656142634 0.006448836699713153
+      # bin4: 0.010216711281314522 0.0063846018161462965
+      # bin5: 0.011384489169083337 0.008098832426923379
+      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.0018 -0.0031 -0.0067  0.0102  0.0114'  #/g" configure_${GoldSet}.sh
+      sed -i.bak "s/^MBIASERRORS=/MBIASERRORS=' 0.0090  0.0064  0.0064  0.0064  0.0081'  #/g" configure_${GoldSet}.sh
     else
+      # K1000 fiducial (Asgari et al. 2021)
       sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.009 -0.011 -0.015  0.002  0.007'  #/g" configure_${GoldSet}.sh
       sed -i.bak "s/^MBIASERRORS=/MBIASERRORS=' 0.019  0.020  0.017  0.012  0.010'  #/g" configure_${GoldSet}.sh
     fi
