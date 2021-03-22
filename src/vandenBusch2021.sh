@@ -274,11 +274,11 @@ then
     GOLDFLAGLIST=""
     for goldset in ${GOLDLIST}
     do 
-      if [ "${goldset}" != "ORIG" ]
+      if [ "${goldset}" != "ORIG" ] && [ "${goldset}" != "ORIGmbias" ]
       then
         if [ "`echo ${goldset} | grep -c NONE`" == "0" ] 
         then 
-          GOLDFLAGLIST=`echo $GOLDFLAGLIST Flag_SOM_${goldset//_shift/}`
+          GOLDFLAGLIST=`echo $GOLDFLAGLIST Flag_SOM_${goldset//_nodz/}`
         fi 
       fi
     done
@@ -370,6 +370,16 @@ then
     #Setup the Gold Set configurations  /*fold*/ {{{
     sed "s/@@GOLDSET@@/${GoldSet}/g" configure.sh > configure_${GoldSet}.sh 
     #/*fend*/}}}
+
+    GoldSetLink=${GoldSet//_nodz/}
+    GoldSetTail=${GoldSet//$GoldSetLink/}
+    if [ "${GoldSetTail}" == "_nodz" ]
+    then 
+      #Remove the '_shift' from the subsetting & Nz /*fold*/ {{{
+      sed -i.bak "s/Flag_SOM_${GoldSet}/Flag_SOM_${GoldSetLink}/g" configure_${GoldSet}.sh
+      sed -i.bak "s/${GoldSet}_blind${BLINDS}/${GoldSetLink}_blind${BLINDS}/g" configure_${GoldSet}.sh
+      #/*fend*/}}}
+    fi
     
     #For each selection, link the shear data  /*fold*/ {{{
     mkdir -p GoldSet_${GoldSet}/
@@ -384,7 +394,7 @@ then
     mkdir -p PatchData/
     cd PatchData/
     cp /net/home/fohlen12/awright/KiDS/Cosmo/PatchData/SOM_cov_multiplied.asc ./
-    if [ "${GoldSet}" == "ORIG" ]
+    if [ "${GoldSet}" == "ORIG" ] || [ "${GoldSet}" == "ORIGmbias" ]
     then
       ################## LINK THE DR4 Photometric data Here ############################
       ${DIR_LDAC}/ldacdelkey${THELI} \
@@ -421,9 +431,14 @@ then
     
     cd ${ROOT}/COSMOPIPE
     # sed -i.bak "s/^/  #/g" configure_${GoldSet}.sh
-    sed -i.bak "s/^DZPRIORMU=/DZPRIORMU='0.000 0.002 0.013 0.011 -0.006'  #/g" configure_${GoldSet}.sh
+    if [ "${GoldSetTail}" == "_nodz" ]
+    then
+      sed -i.bak "s/^DZPRIORMU=/DZPRIORMU='0.000 0.000 0.00 0.000 0.000'  #/g" configure_${GoldSet}.sh
+    else
+      sed -i.bak "s/^DZPRIORMU=/DZPRIORMU='0.000 0.002 0.013 0.011 -0.006'  #/g" configure_${GoldSet}.sh
+    fi
     sed -i.bak "s/^DZPRIORSD=/DZPRIORSD='0.010 0.011 0.012 0.008 0.010'  #/g" configure_${GoldSet}.sh
-    if [ "${GoldSet}" == "Fid" ]
+    if [ "${GoldSetLink}" == "Fid" ]
     then
       # bin1: -0.0024042816724431223 0.008724794712632043
       # bin2: -0.002501150350315491 0.0063969003179527
@@ -431,7 +446,7 @@ then
       # bin4: 0.010229852017836404 0.006147906619923218
       # bin5: 0.012993103800914254 0.008050271786882345
       sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.002 -0.003 -0.007  0.010  0.013'  #/g" configure_${GoldSet}.sh
-    elif [ "${GoldSet}" == "plusPAUS" ]
+    elif [ "${GoldSetLink}" == "plusPAUS" ]
     then
       # bin1: -0.002171057116503219 0.008717400175015723
       # bin2: -0.0016860968524286463 0.006412983511174887
@@ -439,7 +454,7 @@ then
       # bin4: 0.010635055726325301 0.006149581891203765
       # bin5: 0.012983676371220535 0.00809991583635404
       sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.002 -0.002 -0.008  0.011  0.013'  #/g" configure_${GoldSet}.sh
-    elif [ "${GoldSet}" == "plusPAUSCOS15" ]
+    elif [ "${GoldSetLink}" == "plusPAUSCOS15" ]
     then
       # bin1: -0.0018898741145994013 0.008777352805188921
       # bin2: 0.0003159890059065737 0.006183118147096146
@@ -447,7 +462,7 @@ then
       # bin4: 0.011335427668863219 0.006173932612881981
       # bin5: 0.012542488559456564 0.008075147075564039
       sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.002  0.000 -0.008  0.011  0.013'  #/g" configure_${GoldSet}.sh
-    elif [ "${GoldSet}" == "nQ4" ]
+    elif [ "${GoldSetLink}" == "nQ4" ]
     then
       # bin1: -0.0018115034786705842 0.008998232342565568
       # bin2: -0.003125412654839168 0.006442519245537858
@@ -455,6 +470,14 @@ then
       # bin4: 0.010216711281314522 0.0063846018161462965
       # bin5: 0.011384489169083337 0.008098832426923379
       sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.002 -0.003 -0.007  0.010  0.011'  #/g" configure_${GoldSet}.sh
+    elif [ "${GoldSetLink}" == "ORIGmbias" ]
+    then
+      # bin1: -0.00995963912967607 0.008829221143656404
+      # bin2: -0.00948511955203911 0.006330450857610293
+      # bin3: -0.010991440899624444 0.006405850945378147
+      # bin4: 0.007935261534419119 0.0064177568310609875
+      # bin5: 0.012048666602049432 0.008072118337971662
+      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.010 -0.009 -0.011  0.008  0.012'  #/g" configure_${GoldSet}.sh
     else
       # K1000 fiducial (Asgari et al. 2021)
       # bin1: -0.009 0.019
@@ -465,16 +488,15 @@ then
       sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.009 -0.011 -0.015  0.002  0.012'  #/g" configure_${GoldSet}.sh
     fi
     sed -i.bak "s/^MBIASERRORS=/MBIASERRORS=' 0.019  0.020  0.017  0.012  0.010'  #/g" configure_${GoldSet}.sh
-    if [ "${GoldSet}" == "ORIG" ]
+    if [ "${GoldSet}" == "ORIG" ] || [ "${GoldSet}" == "ORIGmbias" ]
     then
       ######### USE THE Original Fiducial ###########
       sed -i.bak "s/^SHEARSUBSET=/SHEARSUBSET=Flag_SOM_Fid_${BLINDS}  #/g" configure_${GoldSet}.sh
     else
-      sed -i.bak "s/^SHEARSUBSET=/SHEARSUBSET=Flag_SOM_${GoldSet}_${BLINDS}  #/g" configure_${GoldSet}.sh
+      sed -i.bak "s/^SHEARSUBSET=/SHEARSUBSET=Flag_SOM_${GoldSetLink}_${BLINDS}  #/g" configure_${GoldSet}.sh
     fi
     #/*fend*/}}}
     #/*fend*/}}}
-    
   done
   cd ${ROOT}/
   #/*fend*/}}}
@@ -514,7 +536,7 @@ then
     #/*fend*/}}}
     
     #Copy the new SOM Redshift distributions to the Gold runs  /*fold*/ {{{
-    if [ "${GoldSet}" == "ORIG" ]
+    if [ "${GoldSet}" == "ORIG" ] || [ "${GoldSet}" == "ORIGmbias" ]
     then
       rm -f *_Nz.asc
       for fpath in /net/home/fohlen12/hendrik/KiDS/data_store/KiDS-1000/SOM_N_of_Z/K1000_NS*blind${BLINDS}*_Nz.asc
@@ -524,8 +546,7 @@ then
         tail -n +2 $fpath > $(echo "$fbase" | sed "s/_Fid_/_${GoldSet}_/g")
       done
     else
-      GoldSetLink=${GoldSet//_shift/}
-      GoldSetLink=${GoldSetLink//_oldmcorr/}
+      GoldSetLink=${GoldSet//_nodz/}
       rm -f *${GoldSetLink}*_Nz.asc
       ln -s ${ROOT}/${OUTPUTDIR}/*${GoldSetLink}*_Nz.asc . 
     fi
@@ -586,7 +607,7 @@ then
       echo "Waiting before post-processing (`date`)"
       prompt=${GoldSet}
     fi
-    sleep 600
+    sleep 200
     #/*fend*/}}}
   done
   echo "Running Post-processing (`date`)" 
