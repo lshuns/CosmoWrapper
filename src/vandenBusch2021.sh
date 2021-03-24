@@ -585,7 +585,7 @@ then
         echo "Paused before starting ${GoldSet}: Maximum simultaneous runs reached (`date`)"
         prompt=${GoldSet}
       fi
-      sleep 600
+      sleep 200
       #/*fend*/}}}
     done
     echo "Launching GoldSet ${GoldSet}: `ps au | grep -v 'bash -c ' | grep -v grep | grep -c run_COSMOLOGY_PIPELINE` -ge ${MAXRUNS} (`date`)" 
@@ -614,6 +614,80 @@ then
   #/*fend*/}}}
 fi 
 
+if [ "${1}" == "11a" -o "${1}" == "" ]
+then
+  #Run the Gold Samples with maxlike sampler for MAP /*fold*/ {{{
+  P_PYTHON=${ROOT}/COSMOPIPE/INSTALL/miniconda3/bin/python3
+  #install Marika's custom maxlike sampler
+  installdir=${ROOT}/COSMOPIPE/INSTALL/kids1000_chains
+  if [ ! -e ${installdir} ]
+  then
+    git clone git@bitbucket.org:marika_a/kids1000_chains.git ${installdir}
+  else
+    cd ${installdir}
+    git pull
+    cd ${ROOT}
+  fi
+
+  #Run the least square fitting
+  for GoldSet in ${GOLDLIST}
+  do
+    maxlike_out=${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/${STORAGEDIR}/LeastSquares/output/K1000_UNBLINDED/cosebis/
+    if [ ! -e ${maxlike_out} ]
+    then
+      mkdir -p ${maxlike_out}
+    fi
+    #create runtime script that is executed in a screen
+    runtime_script=${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/RUNTIME/scripts/run_leastsquares.sh
+    echo "#!/usr/bin/env bash
+${P_PYTHON} ${installdir}/maxlike/maxlike_cosmosis.py \
+  -i ${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/RUNTIME/scripts//COSEBIs_chain.ini \
+  -m ${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/${STORAGEDIR}/MCMC/output/K1000_UNBLINDED/cosebis/chain/output_multinest_${BLINDS}.txt \
+  -o ${maxlike_out}/output_${BLINDS}.txt \
+  --max_post -s \
+  --best_fit_value ${maxlike_out}/best_fit_value.txt \
+  --best_fit_priors ${maxlike_out}/best_fit_priors.txt \
+  --maxiter 3000" > ${runtime_script}
+
+    #Check if we can launch another run  /*fold*/ {{{
+    while [ `ps au | grep -v "bash -c " | grep -v grep | grep -c run_leastsquares` -ge ${MAXRUNS} ]
+    do
+      #If this is the first loop of the wait, then print what is running  /*fold*/ {{{
+      if [ "${prompt}" != "${GoldSet}" ]
+      then
+        echo "Paused before starting ${GoldSet}: Maximum simultaneous runs reached (`date`)"
+        prompt=${GoldSet}
+      fi
+      sleep 60
+      #/*fend*/}}}
+    done
+    echo "Launching GoldSet ${GoldSet}: `ps au | grep -v 'bash -c ' | grep -v grep | grep -c run_leastsquares` -ge ${MAXRUNS} (`date`)" 
+    #/*fend*/}}}
+    
+    #Run the main script  /*fold*/ {{{
+    logfile=${maxlike_out}/cosebis_leastsquares_output.log
+    screen -S CosmoWrapper_Goldset_${GoldSet}_$$.sh -d -m bash -c "nice bash ${runtime_script} > ${logfile} 2>&1"
+    sleep 1
+    #/*fend*/}}}
+  done
+  #/*fend*/}}}
+
+  #Check if we can continue  /*fold*/ {{{
+  while [ `ps au | grep -v "bash -c " | grep -v grep | grep -c run_leastsquares` -ge 1 ]
+  do
+    #If this is the first loop of the wait, then print what is running  /*fold*/ {{{
+    if [ "${prompt}" != "${GoldSet}" ]
+    then
+      echo "Waiting before post-processing (`date`)"
+      prompt=${GoldSet}
+    fi
+    sleep 60
+    #/*fend*/}}}
+  done
+  echo "Running Post-processing (`date`)" 
+  #/*fend*/}}}
+fi 
+
 #Construct the output figures and tables
 if [ "${1}" == "12" -o "${1}" == "" ]
 then 
@@ -633,8 +707,23 @@ then
   #Link the completed goldsets
   for GoldSet in ${GOLDLIST}
   do
-    cp -fv ../COSMOPIPE/GoldSet_${GoldSet}/${STORAGEDIR}/MCMC/output/K1000_UNBLINDED/cosebis/chain/output_multinest_${BLINDS}.txt \
-          GoldSet_${GoldSet}_multinest_${BLINDS}.txt
+    echo "#### collecting ${GoldSet} ####"
+    res_storage=${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/${STORAGEDIR}
+    mcmc_out=${res_storage}/MCMC/output/K1000_UNBLINDED/cosebis/chain/output_multinest_${BLINDS}.txt
+    if [ -e ${mcmc_out} ]
+    then
+      cp -fv ${mcmc_out} GoldSet_${GoldSet}_multinest_${BLINDS}.txt
+    else
+      echo "no MCMC chains found, skipping ..."
+    fi
+
+    lsq_out=${res_storage}/LeastSquares/output/K1000_UNBLINDED/cosebis/output_${BLINDS}.txt
+    if [ -e ${lsq_out} ]
+    then
+      cp -fv ${lsq_out} GoldSet_${GoldSet}_maxlike_${BLINDS}.txt
+    else
+      echo "no least square fits found, skipping ..."
+    fi
   done
 fi 
 
