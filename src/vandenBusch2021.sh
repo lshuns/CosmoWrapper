@@ -484,8 +484,8 @@ then
       # bin2: -0.011 0.020
       # bin3: -0.015 0.017
       # bin4: 0.002 0.012
-      # bin5: 0.012 0.010
-      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.009 -0.011 -0.015  0.002  0.012'  #/g" configure_${GoldSet}.sh
+      # bin5: 0.007 0.010
+      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.009 -0.011 -0.015  0.002  0.007'  #/g" configure_${GoldSet}.sh
     fi
     sed -i.bak "s/^MBIASERRORS=/MBIASERRORS=' 0.019  0.020  0.017  0.012  0.010'  #/g" configure_${GoldSet}.sh
     if [ "${GoldSet}" == "ORIG" ] || [ "${GoldSet}" == "ORIGmbias" ]
