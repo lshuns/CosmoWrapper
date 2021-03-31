@@ -1,8 +1,7 @@
 #!/usr/bin/env R
 
 # arg1: R memory image of trained SOM
-# arg2: photometric catalogue
-# arg3: spectroscopic catalogue
+# arg2: catalogue
 
 library(kohonen)
 library(data.table)

@@ -53,7 +53,7 @@ do.redshiftClass<-TRUE
 blind.list<-c("A","B","C")
 count.variable<-'recal_weight'
 output.folder<-"DR4_SOMweight_Results/"
-QC.expr<-"abs(mean(spec$Zbest,na.rm=T)-weighted.mean(phot$Z_B,phot$recal_weight,na.rm=T))<=max(5*mad(full.spec$Zbest-full.spec$Z_B,na.rm=T),0.4)" 
+QC.expr<-"abs(mean(spec$Zbest,na.rm=T)-weighted.mean(phot$Z_B,phot$recal_weight,na.rm=T))<=0.61" 
 tomo.bin<-c(4000,2200,2800,4200,2000)
 tomo.lim<-c(0.1,0.3,0.5,0.7,0.9,1.2)
 nz.format<-'.fits'
@@ -71,7 +71,10 @@ nz.format<-'.fits'
 class.sets<-rbind(c("nQ4",             "phot$RedshiftGoldClass>=0","spec$z_Flag>=4"),
                   c("Fid",             "phot$RedshiftGoldClass>=0","spec$z_Flag>=3"),
                   c("plusPAUS",        "phot$RedshiftGoldClass>=0","spec$z_Flag>=2"),
-                  c("plusPAUSCOS15",   "phot$RedshiftGoldClass>=0","spec$z_Flag>=1"))
+                  c("plusPAUSCOS15",   "phot$RedshiftGoldClass>=0","spec$z_Flag>=1"),
+                  c("onlyCOS15",       "phot$RedshiftGoldClass>=0","spec$z_Flag==2"),
+                  c("onlyPAUS",        "phot$RedshiftGoldClass>=0","spec$z_Flag==1"),
+                  c("onlyPAUSCOS15",   "phot$RedshiftGoldClass>=0","spec$z_Flag<=2"))
 #/*fend*/}}}
 
 #Define the datasets /*fold*/{{{
