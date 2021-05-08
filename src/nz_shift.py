@@ -17,7 +17,7 @@ parser.add_argument(
     "-s", "--shifts", nargs="*", type=float,
     help="shifts to apply to the input files (provided in same order")
 args = parser.parse_args()
-if len(args.shifts != args.input):
+if len(args.shifts) != len(args.input):
     raise parser.error("number of shift parameterss do not match input files")
 if not os.path.exists(args.output):
     raise OSError("output folder does not exist: {:}".format(args.output))
