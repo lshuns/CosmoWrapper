@@ -225,9 +225,10 @@ then
       ${OUTPUTDIR}/${SPECCAT_ALL_ADAPT//.fits/_allgoldclass.fits}
     ${P_RSCRIPT} get_SOM_cellcounts.R \
       ${OUTPUTDIR}/${SOMFILE} \
-      ${OUTPUTDIR}/${PHOTCAT_ALL_DCOL//.cat/_allgoldclass.fits} \
+      ${OUTPUTDIR}/${PHOTCAT_ALL_DCOL//.cat/_allgoldclass.fits}
   else 
     echo "Gold Catalogues Already Exists! Skipping!" 
+    echo "(${OUTPUTDIR}/${PHOTCAT_ALL_DCOL//.cat/_allgoldclass.fits})"
   fi 
   #/*fend*/}}}
 fi
@@ -259,7 +260,8 @@ then
         >> ${outputdirMBIAS}/construct_cosmos_goldclasses.log
       done
   else 
-    echo "Gold Catalogues for COSMOS Already Exist! Skipping!" 
+    echo "Output Folder Already Exist! Skipping!" 
+    echo "(${outputdirMBIAS})"
   fi 
   #/*fend*/}}}
 fi
@@ -278,7 +280,11 @@ then
       then
         if [ "`echo ${goldset} | grep -c NONE`" == "0" ] 
         then 
-          GOLDFLAGLIST=`echo $GOLDFLAGLIST Flag_SOM_${goldset//_nodz/}`
+          GoldSetLink=${goldset//_nodz/}
+          GoldSetLink=${GoldSetLink//_trunc/}
+          GoldSetLink=${GoldSetLink//_HartleyBest/}
+          GoldSetLink=${GoldSetLink//_HartleyWorst/}
+          GOLDFLAGLIST=`echo $GOLDFLAGLIST Flag_SOM_${GoldSetLink}`
         fi 
       fi
     done
@@ -287,6 +293,7 @@ then
       ${OUTPUTDIR}/${PHOTCAT_ALL_GOLD} "${BLINDS}" "${GOLDFLAGLIST}" 
   else 
     echo "Merged catalogue already exists! Skipping!" 
+    echo "(${OUTPUTDIR}/${PHOTCAT_ALL_GOLD})"
   fi 
   #/*fend*/}}}
 fi
@@ -372,8 +379,11 @@ then
     #/*fend*/}}}
 
     GoldSetLink=${GoldSet//_nodz/}
+    GoldSetLink=${GoldSetLink//_trunc/}
+    GoldSetLink=${GoldSetLink//_HartleyBest/}
+    GoldSetLink=${GoldSetLink//_HartleyWorst/}
     GoldSetTail=${GoldSet//$GoldSetLink/}
-    if [ "${GoldSetTail}" == "_nodz" ]
+    if [ "${GoldSetTail}" != "" ]
     then 
       #Remove the '_shift' from the subsetting & Nz /*fold*/ {{{
       sed -i.bak "s/Flag_SOM_${GoldSet}/Flag_SOM_${GoldSetLink}/g" configure_${GoldSet}.sh
@@ -431,12 +441,7 @@ then
     
     cd ${ROOT}/COSMOPIPE
     # sed -i.bak "s/^/  #/g" configure_${GoldSet}.sh
-    if [ "${GoldSetTail}" == "_nodz" ]
-    then
-      sed -i.bak "s/^DZPRIORMU=/DZPRIORMU='0.000 0.000 0.00 0.000 0.000'  #/g" configure_${GoldSet}.sh
-    else
-      sed -i.bak "s/^DZPRIORMU=/DZPRIORMU='0.000 0.002 0.013 0.011 -0.006'  #/g" configure_${GoldSet}.sh
-    fi
+    sed -i.bak "s/^DZPRIORMU=/DZPRIORMU='0.000 0.002 0.013 0.011 -0.006'  #/g" configure_${GoldSet}.sh
     sed -i.bak "s/^DZPRIORSD=/DZPRIORSD='0.010 0.011 0.012 0.008 0.010'  #/g" configure_${GoldSet}.sh
     if [ "${GoldSetLink}" == "Fid" ]
     then
@@ -481,15 +486,15 @@ then
     elif [ "${GoldSetLink}" == "onlyPAUS" ]
     then
       echo "ERROR: no m-bias calibrated"
-      exit 1
+      #exit 1
     elif [ "${GoldSetLink}" == "onlyCOS15" ]
     then
       echo "ERROR: no m-bias calibrated"
-      exit 1
+      #exit 1
     elif [ "${GoldSetLink}" == "onlyPAUSCOS15" ]
     then
       echo "ERROR: no m-bias calibrated"
-      exit 1
+      #exit 1
     else
       # K1000 fiducial (Asgari et al. 2021)
       # bin1: -0.009 0.019
@@ -548,6 +553,11 @@ then
     #/*fend*/}}}
     
     #Copy the new SOM Redshift distributions to the Gold runs  /*fold*/ {{{
+    GoldSetLink=${GoldSet//_nodz/}
+    GoldSetLink=${GoldSetLink//_trunc/}
+    GoldSetLink=${GoldSetLink//_HartleyBest/}
+    GoldSetLink=${GoldSetLink//_HartleyWorst/}
+    GoldSetTail=${GoldSet//$GoldSetLink/}
     if [ "${GoldSet}" == "ORIG" ] || [ "${GoldSet}" == "ORIGmbias" ]
     then
       rm -f *_Nz.asc
@@ -557,8 +567,48 @@ then
         # remove the commented header in the n(z) file from the data store
         tail -n +2 $fpath > $(echo "$fbase" | sed "s/_Fid_/_${GoldSet}_/g")
       done
+    elif [ "${GoldSetTail}" == "_trunc" ]
+    then
+      rm -f *${GoldSetLink}*_Nz.asc
+      for fpath in ${ROOT}/${OUTPUTDIR}/*${GoldSetLink}*_Nz.asc
+      do
+        # clip n(z) files at 95-th percentile
+        python ${ROOT}/nz_trim_percentile.py $fpath $(basename $fpath) 95.0
+      done
+    #########################################
+    elif [ "${GoldSetTail}" == "_nodz" ]
+    then
+      python ${ROOT}/nz_shift.py \
+        -i ${ROOT}/${OUTPUTDIR}/*${GoldSetLink}*_Nz.asc \
+        -s 0.000 0.002 0.013 0.011 -0.006 \
+        -o $(pwd)
+    # offset the K1000 values with the data from Fig. 6 in Hartley+20
+    # the mapping from the 4 DES bins to the 5 KiDS bins is a linear combination
+    # map = [[   1    0    0    0]
+    #        [ 1/2  1/2    0    0]
+    #        [   0  2/3  1/3    0]
+    #        [   0    0    1    0]
+    #        [   0    0    0    1]]
+    elif [ "${GoldSetTail}" == "_HartleyBest" ]
+    then
+      # KiDS prior:   0.000 0.002 0.013 0.011 -0.006
+      # Hartley@KiDS: 0.008 0.015 0.014 -0.003 -0.058
+      # KiDS+Hartley: 0.008 0.017 0.027 0.008 -0.064
+      python ${ROOT}/nz_shift.py \
+        -i ${ROOT}/${OUTPUTDIR}/*${GoldSetLink}*_Nz.asc \
+        -s 0.008 0.015 0.014 -0.003 -0.058 \
+        -o $(pwd)
+    elif [ "${GoldSetTail}" == "_HartleyWorst" ]
+    then
+      # KiDS prior:   0.000 0.002 0.013 0.011 -0.006
+      # Hartley@KiDS: 0.012 0.014 0.004 -0.020 -0.160
+      # KiDS+Hartley: 0.012 0.016 0.017 -0.009 -0.166
+      python ${ROOT}/nz_shift.py \
+        -i ${ROOT}/${OUTPUTDIR}/*${GoldSetLink}*_Nz.asc \
+        -s 0.012 0.014 0.004 -0.020 -0.160 \
+        -o $(pwd)
+    #########################################
     else
-      GoldSetLink=${GoldSet//_nodz/}
       rm -f *${GoldSetLink}*_Nz.asc
       ln -s ${ROOT}/${OUTPUTDIR}/*${GoldSetLink}*_Nz.asc . 
     fi
