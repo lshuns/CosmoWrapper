@@ -53,7 +53,8 @@ do.redshiftClass<-TRUE
 blind.list<-c("A","B","C")
 count.variable<-'recal_weight'
 output.folder<-"DR4_SOMweight_Results/"
-QC.expr<-"abs(mean(spec$Zbest,na.rm=T)-weighted.mean(phot$Z_B,phot$recal_weight,na.rm=T))<=0.61" 
+spec.variable<-'redshift'
+QC.expr<-"abs(mean(spec$redshift,na.rm=T)-weighted.mean(phot$Z_B,phot$recal_weight,na.rm=T))<=0.61" 
 tomo.bin<-c(4000,2200,2800,4200,2000)
 tomo.lim<-c(0.1,0.3,0.5,0.7,0.9,1.2)
 nz.format<-'.fits'
@@ -68,13 +69,13 @@ nz.format<-'.fits'
 #                  c("multispec3",   "phot$SurveyGoldClass>=3",        "spec$z_Flag>0"      ))
 ##/*fend*/}}}
 #Define the JLvdB SOM GoldClass sets /*fold*/{{{
-class.sets<-rbind(c("nQ4",             "phot$RedshiftGoldClass>=0","spec$z_Flag>=4"),
-                  c("Fid",             "phot$RedshiftGoldClass>=0","spec$z_Flag>=3"),
-                  c("plusPAUS",        "phot$RedshiftGoldClass>=0","spec$z_Flag>=2"),
-                  c("plusPAUSCOS15",   "phot$RedshiftGoldClass>=0","spec$z_Flag>=1"),
-                  c("onlyCOS15",       "phot$RedshiftGoldClass>=0","spec$z_Flag==2"),
-                  c("onlyPAUS",        "phot$RedshiftGoldClass>=0","spec$z_Flag==1"),
-                  c("onlyPAUSCOS15",   "phot$RedshiftGoldClass>=0","spec$z_Flag<=2"))
+class.sets<-rbind(c("nQ4",           "phot$RedshiftGoldClass>=0", "spec$z_Flag>=4",               "Zbest"),
+                  c("Fid",           "phot$RedshiftGoldClass>=0", "spec$z_Flag>=3",               "Zbest"),
+                  c("plusPAUS",      "phot$RedshiftGoldClass>=0", "spec$z_Flag>=2",               "Zbest"),
+                  c("plusPAUSCOS15", "phot$RedshiftGoldClass>=0", "spec$z_Flag>=1",               "Zbest"),
+                  c("onlyPAUS",      "phot$RedshiftGoldClass>=0", "bitwAnd(spec$Zsource,2L)==2L", "Zpaus"),
+                  c("onlyCOS15",     "phot$RedshiftGoldClass>=0", "bitwAnd(spec$Zsource,4L)==4L", "Zcos15"),
+                  c("onlyPAUSCOS15", "phot$RedshiftGoldClass>=0", "spec$Zsource>1",               "ZbestPhot"))
 #/*fend*/}}}
 
 #Define the datasets /*fold*/{{{
@@ -454,8 +455,11 @@ for (blind in blind.list) {
       blind.count.variable<-count.variable
     }
     #}}}
+    spec.redshift<-class.sets[set,4]
     #QC Expression {{{
-    blind.QC.expr<-gsub(count.variable,blind.count.variable,QC.expr)
+    goldset.QC.expr<-gsub(spec.variable,spec.redshift,QC.expr)
+    blind.QC.expr<-gsub(count.variable,blind.count.variable,goldset.QC.expr)
+    write(paste0(class.sets[set,1],": ",blind.QC.expr),stderr())
     split.expr<-split.expr(blind.QC.expr,ignore='abs')
     split.names<-names(split.expr$components)
     keep<-rep(TRUE,length(split.names))
@@ -615,7 +619,7 @@ for (blind in blind.list) {
       cat(" $ & ")
       #/*fend*/}}}
       #Construct the Nz /*fold*/{{{
-      nzdist<-weighted.hist(spec$Zbest,w=tmp.weights$train.weight/sum(tmp.weights$train.weight),
+      nzdist<-weighted.hist(spec[[spec.redshift]],w=tmp.weights$train.weight/sum(tmp.weights$train.weight),
                     breaks=seq(0,6.001,by=0.05),plot=F)
       #/*fend*/}}}
       #Output the Nz #/*fold*/{{{
