@@ -451,6 +451,14 @@ then
       # bin4: 0.009886030380149706 0.006303345896370764
       # bin5: 0.012568191803766029 0.00805985325907987
       sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.002 -0.004 -0.007  0.010  0.013'  #/g" configure_${GoldSet}.sh
+    elif [ "${GoldSetLink}" == "Fid_noDEVILS" ]
+    then
+      # bin1: -0.0006296010406884851 0.008959283310110677
+      # bin2: -0.0035735855359605093 0.006388020567536477
+      # bin3: -0.006306263945970698 0.006469089845731768
+      # bin4: 0.009919566143734643 0.006314314949824238
+      # bin5: 0.012115237814203416 0.008050799624364158
+      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.001 -0.004 -0.006  0.010  0.012'  #/g" configure_${GoldSet}.sh
     elif [ "${GoldSetLink}" == "plusPAUS" ]
     then
       # bin1: -0.0023269334232442337 0.008881225542425614
@@ -485,16 +493,28 @@ then
       sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.010 -0.009 -0.011  0.008  0.012'  #/g" configure_${GoldSet}.sh
     elif [ "${GoldSetLink}" == "onlyPAUS" ]
     then
-      echo "ERROR: no m-bias calibrated"
-      #exit 1
+      # bin1: -0.00458597126644202 0.008741059158244661
+      # bin2: -0.003643567173407195 0.006439610824645876
+      # bin3: -0.008529529637254405 0.0064225852457679075
+      # bin4: 0.007650934867507904 0.00630644123981858
+      # bin5: 0.008388372515304082 0.008299943911760298
+      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.005 -0.004 -0.009  0.008  0.008'  #/g" configure_${GoldSet}.sh
     elif [ "${GoldSetLink}" == "onlyCOS15" ]
     then
-      echo "ERROR: no m-bias calibrated"
-      #exit 1
+      # bin1: -0.005770889954998207 0.008793911790837761
+      # bin2: -0.0020081134463004425 0.006317168825689079
+      # bin3: -0.009806280648000813 0.006403457221758943
+      # bin4: 0.010404674721148812 0.00615987688108042
+      # bin5: 0.012236512101840432 0.008077742500524721
+      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.006 -0.002 -0.010  0.010  0.012'  #/g" configure_${GoldSet}.sh
     elif [ "${GoldSetLink}" == "onlyPAUSCOS15" ]
     then
-      echo "ERROR: no m-bias calibrated"
-      #exit 1
+      # bin1: -0.006582387963870873 0.008872398780046082
+      # bin2: -0.002017237730717207 0.006312960389114971
+      # bin3: -0.009500122495017251 0.006392180202636211
+      # bin4: 0.010547957903941751 0.0061493420460075375
+      # bin5: 0.012232415677480046 0.008077742500524721
+      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.007 -0.002 -0.010  0.011  0.012'  #/g" configure_${GoldSet}.sh
     else
       # K1000 fiducial (Asgari et al. 2021)
       # bin1: -0.009 0.019
@@ -569,8 +589,8 @@ then
       done
     elif [ "${GoldSetTail}" == "_trunc" ]
     then
-      rm -f *${GoldSetLink}*_Nz.asc
-      for fpath in ${ROOT}/${OUTPUTDIR}/*${GoldSetLink}*_Nz.asc
+      rm -f *_${GoldSetLink}_blind*_Nz.asc
+      for fpath in ${ROOT}/${OUTPUTDIR}/*_${GoldSetLink}_blind*_Nz.asc
       do
         # clip n(z) files at 95-th percentile
         python ${ROOT}/nz_trim_percentile.py $fpath $(basename $fpath) 95.0
@@ -579,7 +599,7 @@ then
     elif [ "${GoldSetTail}" == "_nodz" ]
     then
       python ${ROOT}/nz_shift.py \
-        -i ${ROOT}/${OUTPUTDIR}/*${GoldSetLink}*_Nz.asc \
+        -i ${ROOT}/${OUTPUTDIR}/*_${GoldSetLink}_blind*_Nz.asc \
         -s 0.000 0.002 0.013 0.011 -0.006 \
         -o $(pwd)
     # offset the K1000 values with the data from Fig. 6 in Hartley+20
@@ -595,7 +615,7 @@ then
       # Hartley@KiDS: 0.008 0.015 0.014 -0.003 -0.058
       # KiDS+Hartley: 0.008 0.017 0.027 0.008 -0.064
       python ${ROOT}/nz_shift.py \
-        -i ${ROOT}/${OUTPUTDIR}/*${GoldSetLink}*_Nz.asc \
+        -i ${ROOT}/${OUTPUTDIR}/*_${GoldSetLink}_blind*_Nz.asc \
         -s 0.008 0.015 0.014 -0.003 -0.058 \
         -o $(pwd)
     elif [ "${GoldSetTail}" == "_HartleyWorst" ]
@@ -604,13 +624,13 @@ then
       # Hartley@KiDS: 0.012 0.014 0.004 -0.020 -0.160
       # KiDS+Hartley: 0.012 0.016 0.017 -0.009 -0.166
       python ${ROOT}/nz_shift.py \
-        -i ${ROOT}/${OUTPUTDIR}/*${GoldSetLink}*_Nz.asc \
+        -i ${ROOT}/${OUTPUTDIR}/*_${GoldSetLink}_blind*_Nz.asc \
         -s 0.012 0.014 0.004 -0.020 -0.160 \
         -o $(pwd)
     #########################################
     else
-      rm -f *${GoldSetLink}*_Nz.asc
-      ln -s ${ROOT}/${OUTPUTDIR}/*${GoldSetLink}*_Nz.asc . 
+      rm -f *_${GoldSetLink}_blind*_Nz.asc
+      ln -s ${ROOT}/${OUTPUTDIR}/*_${GoldSetLink}_blind*_Nz.asc . 
     fi
     #/*fend*/}}}
     #/*fend*/}}}

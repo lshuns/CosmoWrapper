@@ -69,13 +69,14 @@ nz.format<-'.fits'
 #                  c("multispec3",   "phot$SurveyGoldClass>=3",        "spec$z_Flag>0"      ))
 ##/*fend*/}}}
 #Define the JLvdB SOM GoldClass sets /*fold*/{{{
-class.sets<-rbind(c("nQ4",           "phot$RedshiftGoldClass>=0", "spec$z_Flag>=4",               "Zbest"),
-                  c("Fid",           "phot$RedshiftGoldClass>=0", "spec$z_Flag>=3",               "Zbest"),
-                  c("plusPAUS",      "phot$RedshiftGoldClass>=0", "spec$z_Flag>=2",               "Zbest"),
-                  c("plusPAUSCOS15", "phot$RedshiftGoldClass>=0", "spec$z_Flag>=1",               "Zbest"),
-                  c("onlyPAUS",      "phot$RedshiftGoldClass>=0", "bitwAnd(spec$Zsource,2L)==2L", "Zpaus"),
-                  c("onlyCOS15",     "phot$RedshiftGoldClass>=0", "bitwAnd(spec$Zsource,4L)==4L", "Zcos15"),
-                  c("onlyPAUSCOS15", "phot$RedshiftGoldClass>=0", "spec$Zsource>1",               "ZbestPhot"))
+class.sets<-rbind(c("nQ4",            "phot$RedshiftGoldClass>=0",  "spec$z_Flag>=4",                     "Zbest"),
+                  c("Fid",            "phot$RedshiftGoldClass>=0",  "spec$z_Flag>=3",                     "Zbest"),
+                  c("plusPAUS",       "phot$RedshiftGoldClass>=0",  "spec$z_Flag>=2",                     "Zbest"),
+                  c("plusPAUSCOS15",  "phot$RedshiftGoldClass>=0",  "spec$z_Flag>=1",                     "Zbest"),
+                  c("onlyPAUS",       "phot$RedshiftGoldClass>=0",  "bitwAnd(spec$Zsource,2L)==2L",       "Zpaus"),
+                  c("onlyCOS15",      "phot$RedshiftGoldClass>=0",  "bitwAnd(spec$Zsource,4L)==4L",       "Zcos15"),
+                  c("onlyPAUSCOS15",  "phot$RedshiftGoldClass>=0",  "spec$Zsource>1",                     "ZbestPhot"),
+                  c("Fid_noDEVILS",   "phot$RedshiftGoldClass>=0",  "(spec$z_Flag>=3)&(spec$source!=10)", "Zbest"))
 #/*fend*/}}}
 
 #Define the datasets /*fold*/{{{
