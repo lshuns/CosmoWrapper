@@ -281,9 +281,11 @@ then
         if [ "`echo ${goldset} | grep -c NONE`" == "0" ] 
         then 
           GoldSetLink=${goldset//_nodz/}
+          GoldSetLink=${GoldSetLink//_trunc3/}
           GoldSetLink=${GoldSetLink//_trunc/}
           GoldSetLink=${GoldSetLink//_HartleyBest/}
           GoldSetLink=${GoldSetLink//_HartleyWorst/}
+          GoldSetLink=${GoldSetLink//_Hartley/}
           GOLDFLAGLIST=`echo $GOLDFLAGLIST Flag_SOM_${GoldSetLink}`
         fi 
       fi
@@ -379,9 +381,11 @@ then
     #/*fend*/}}}
 
     GoldSetLink=${GoldSet//_nodz/}
+    GoldSetLink=${GoldSetLink//_trunc3/}
     GoldSetLink=${GoldSetLink//_trunc/}
     GoldSetLink=${GoldSetLink//_HartleyBest/}
     GoldSetLink=${GoldSetLink//_HartleyWorst/}
+    GoldSetLink=${GoldSetLink//_Hartley/}
     GoldSetTail=${GoldSet//$GoldSetLink/}
     if [ "${GoldSetTail}" != "" ]
     then 
@@ -574,9 +578,11 @@ then
     
     #Copy the new SOM Redshift distributions to the Gold runs  /*fold*/ {{{
     GoldSetLink=${GoldSet//_nodz/}
+    GoldSetLink=${GoldSetLink//_trunc3/}
     GoldSetLink=${GoldSetLink//_trunc/}
     GoldSetLink=${GoldSetLink//_HartleyBest/}
     GoldSetLink=${GoldSetLink//_HartleyWorst/}
+    GoldSetLink=${GoldSetLink//_Hartley/}
     GoldSetTail=${GoldSet//$GoldSetLink/}
     if [ "${GoldSet}" == "ORIG" ] || [ "${GoldSet}" == "ORIGmbias" ]
     then
@@ -595,7 +601,14 @@ then
         # clip n(z) files at 95-th percentile
         python ${ROOT}/nz_trim_percentile.py $fpath $(basename $fpath) 95.0
       done
-    #########################################
+    elif [ "${GoldSetTail}" == "_trunc3" ]
+    then
+      rm -f *_${GoldSetLink}_blind*_Nz.asc
+      for fpath in ${ROOT}/${OUTPUTDIR}/*_${GoldSetLink}_blind*_Nz.asc
+      do
+        # clip n(z) files at 97-th percentile
+        python ${ROOT}/nz_trim_percentile.py $fpath $(basename $fpath) 97.0
+      done
     elif [ "${GoldSetTail}" == "_nodz" ]
     then
       python ${ROOT}/nz_shift.py \
@@ -609,6 +622,15 @@ then
     #        [   0  2/3  1/3    0]
     #        [   0    0    1    0]
     #        [   0    0    0    1]]
+    elif [ "${GoldSetTail}" == "_Hartley" ]
+    then
+      # KiDS prior:   0.000 0.002 0.013 0.011 -0.006
+      # Hartley@KiDS: 0.008 0.015 0.014 -0.003 -0.058
+      # KiDS-Hartley: -0.008 -0.013 -0.001 0.014 0.052
+      python ${ROOT}/nz_shift.py \
+        -i ${ROOT}/${OUTPUTDIR}/*_${GoldSetLink}_blind*_Nz.asc \
+        -s -0.008 -0.013 -0.001 0.014 0.052 \
+        -o $(pwd)
     elif [ "${GoldSetTail}" == "_HartleyBest" ]
     then
       # KiDS prior:   0.000 0.002 0.013 0.011 -0.006
@@ -627,7 +649,6 @@ then
         -i ${ROOT}/${OUTPUTDIR}/*_${GoldSetLink}_blind*_Nz.asc \
         -s 0.012 0.014 0.004 -0.020 -0.160 \
         -o $(pwd)
-    #########################################
     else
       rm -f *_${GoldSetLink}_blind*_Nz.asc
       ln -s ${ROOT}/${OUTPUTDIR}/*_${GoldSetLink}_blind*_Nz.asc . 

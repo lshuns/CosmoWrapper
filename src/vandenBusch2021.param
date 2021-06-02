@@ -1,6 +1,6 @@
 #
 #
-# Parameters needed for the Wright2020b analyses
+# Parameters needed for the vandenBusch2021 analyses
 #
 #
 
@@ -44,7 +44,7 @@ SURVEYAREA=2.79864e+06  # 777.4 sqdeg
 BLINDS="C" 
 
 #Define the goldsets to analyse
-GOLDLIST="ORIG Fid plusPAUS plusPAUSCOS15 nQ4"
+GOLDLIST="nQ4 Fid plusPAUS plusPAUSCOS15 onlyPAUSCOS15 onlyCOS15 onlyPAUS Fid_nodz ORIG ORIGmbias Fid_trunc nQ4_HartleyBest nQ4_HartleyWorst Fid_noDEVILS"
 
 #SOM Filename 
 SOMFILE="Spec_Train_Adapt_DIR_SOMdata.Rdata"
@@ -55,6 +55,5 @@ TOMO_LIMS="0.1 0.3 0.5 0.7 0.9 1.2"
 #redshift label 
 ZLABEL='Zbest'
 # Sampling live points
-NLIVE=200      # 1000
-TOLERANCE=0.1  # 0.01
-
+NLIVE=1000      # 200
+TOLERANCE=0.01  # 0.1
