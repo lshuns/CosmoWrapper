@@ -39,12 +39,12 @@ PATCHLO="120 315"
 # PATCH Upper RA limits
 PATCHHI="240 60"
 # effect mask area
-SURVEYAREA=2.79864e+06  # 777.4 sqdeg
+SURVEYAREA=3.1212e+06  # 867.0 sqdeg
 # Blind Designations  
 BLINDS="C" 
 
 #Define the goldsets to analyse
-GOLDLIST="nQ4 Fid plusPAUS plusPAUSCOS15 onlyPAUSCOS15 onlyCOS15 onlyPAUS Fid_nodz ORIG ORIGmbias Fid_trunc nQ4_HartleyBest nQ4_HartleyWorst Fid_noDEVILS"
+GOLDLIST="nQ4 Fid plusPAUS plusPAUSCOS15 onlyPAUSCOS15 onlyCOS15 onlyPAUS Fid_nodz ORIG ORIGmbias Fid_trunc nQ4_HartleyBest nQ4_HartleyWorst Fid_noDEVILS Otheta"
 
 #SOM Filename 
 SOMFILE="Spec_Train_Adapt_DIR_SOMdata.Rdata"
