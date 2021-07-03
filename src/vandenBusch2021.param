@@ -44,7 +44,7 @@ SURVEYAREA=3.1212e+06  # 867.0 sqdeg
 BLINDS="C" 
 
 #Define the goldsets to analyse
-GOLDLIST="nQ4 Fid plusPAUS plusPAUSCOS15 onlyPAUSCOS15 onlyCOS15 onlyPAUS Fid_nodz ORIG ORIGmbias Fid_trunc nQ4_HartleyBest nQ4_HartleyWorst Fid_noDEVILS Otheta"
+GOLDLIST="nQ4 Fid plusPAUS plusPAUSCOS15 onlyPAUSCOS15 onlyCOS15 onlyPAUS Fid_nodz ORIG ORIGmbias Fid_trunc nQ4_HartleyBest nQ4_HartleyWorst Fid_noDEVILS"
 
 #SOM Filename 
 SOMFILE="Spec_Train_Adapt_DIR_SOMdata.Rdata"

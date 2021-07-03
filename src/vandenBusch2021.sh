@@ -276,7 +276,7 @@ then
     GOLDFLAGLIST=""
     for goldset in ${GOLDLIST}
     do 
-      if [ "${goldset}" != "ORIG" ] && [ "${goldset}" != "ORIGmbias" ] && [ "${goldset}" != "Otheta" ]
+      if [ "${goldset}" != "ORIG" ] && [ "${goldset}" != "ORIGmbias" ]
       then
         if [ "`echo ${goldset} | grep -c NONE`" == "0" ] 
         then 
@@ -408,7 +408,7 @@ then
     mkdir -p PatchData/
     cd PatchData/
     cp /net/home/fohlen12/awright/KiDS/Cosmo/PatchData/SOM_cov_multiplied.asc ./
-    if [ "${GoldSet}" == "ORIG" ] || [ "${GoldSet}" == "ORIGmbias" ] || [ "${GoldSet}" == "Otheta" ]
+    if [ "${GoldSet}" == "ORIG" ] || [ "${GoldSet}" == "ORIGmbias" ]
     then
       ################## LINK THE DR4 Photometric data Here ############################
       ${DIR_LDAC}/ldacdelkey${THELI} \
@@ -445,6 +445,7 @@ then
     
     cd ${ROOT}/COSMOPIPE
     # sed -i.bak "s/^/  #/g" configure_${GoldSet}.sh
+    sed -i.bak 's/^NTHETABINXI=/NTHETABINXI="4000"  #/g' configure_${GoldSet}.sh
     sed -i.bak "s/^DZPRIORMU=/DZPRIORMU='0.000 0.002 0.013 0.011 -0.006'  #/g" configure_${GoldSet}.sh
     sed -i.bak "s/^DZPRIORSD=/DZPRIORSD='0.010 0.011 0.012 0.008 0.010'  #/g" configure_${GoldSet}.sh
     if [ "${GoldSetLink}" == "Fid" ]
@@ -529,19 +530,13 @@ then
       sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.009 -0.011 -0.015  0.002  0.007'  #/g" configure_${GoldSet}.sh
     fi
     sed -i.bak "s/^MBIASERRORS=/MBIASERRORS=' 0.019  0.020  0.017  0.012  0.010'  #/g" configure_${GoldSet}.sh
-    if [ "${GoldSet}" == "ORIG" ] || [ "${GoldSet}" == "ORIGmbias" ] || [ "${GoldSet}" == "Otheta" ]
+    if [ "${GoldSet}" == "ORIG" ] || [ "${GoldSet}" == "ORIGmbias" ]
     then
       ######### USE THE Original Fiducial ###########
       sed -i.bak "s/^SHEARSUBSET=/SHEARSUBSET=Flag_SOM_Fid_${BLINDS}  #/g" configure_${GoldSet}.sh
     else
       sed -i.bak "s/^SHEARSUBSET=/SHEARSUBSET=Flag_SOM_${GoldSetLink}_${BLINDS}  #/g" configure_${GoldSet}.sh
     fi
-    if [ "${GoldSet}" == "Otheta" ]
-    then
-      ######### USE THE Original 4000 theta bins ###########
-      sed -i.bak 's/^NTHETABINXI=/NTHETABINXI="4000"  #/g' configure_${GoldSet}.sh
-    fi
-    ####################
     #/*fend*/}}}
     #/*fend*/}}}
   done
@@ -590,7 +585,7 @@ then
     GoldSetLink=${GoldSetLink//_HartleyWorst/}
     GoldSetLink=${GoldSetLink//_Hartley/}
     GoldSetTail=${GoldSet//$GoldSetLink/}
-    if [ "${GoldSet}" == "ORIG" ] || [ "${GoldSet}" == "ORIGmbias" ] || [ "${GoldSet}" == "Otheta" ]
+    if [ "${GoldSet}" == "ORIG" ] || [ "${GoldSet}" == "ORIGmbias" ]
     then
       rm -f *_Nz.asc
       for fpath in /net/home/fohlen12/hendrik/KiDS/data_store/KiDS-1000/SOM_N_of_Z/K1000_NS*blind${BLINDS}*_Nz.asc
