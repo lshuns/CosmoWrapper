@@ -770,7 +770,7 @@ ${P_PYTHON} ${installdir}/maxlike/maxlike_cosmosis.py \
     
     #Run the main script  /*fold*/ {{{
     logfile=${maxlike_out}/cosebis_leastsquares_output.log
-    screen -S CosmoWrapper_Goldset_${GoldSet}_$$.sh -d -m bash -c "nice bash ${runtime_script} > ${logfile} 2>&1"
+    screen -S CosmoWrapper_Goldset_${GoldSet}_$$.sh -d -m bash -c "nice -n 10 bash ${runtime_script} > ${logfile} 2>&1"
     sleep 1
     #/*fend*/}}}
   done
