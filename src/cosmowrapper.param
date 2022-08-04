@@ -1,12 +1,10 @@
 #
-#
 # Parameters needed for the vandenBusch2022 analyses
-#
 #
 
 # Rscript binary
 P_RSCRIPT=`which Rscript`
-# LDAC tools folder 
+# LDAC tools folder
 DIR_LDAC="/net/home/fohlen12/hendrik/src/theli-1.30.0/bin/Linux_64/"
 # LDAC Commands Suffix
 THELI="_theli"
@@ -26,11 +24,11 @@ SPECCAT_ALL="KiDS_specz_PAUS_COSMOS2015.csv"
 # Fiducial Phot Catalogue (with "ALLPATCH" Designation)
 FILEBODY="V1.0.0A_ugriZYJHKs_photoz_SG_mask_LF_svn_309c_2Dbins_v2"
 PHOTCAT_ALL="K1000_NS_${FILEBODY}.cat"
-# Survey Footprint Mask 
+# Survey Footprint Mask
 MASKFILE="KiDS_K1000_healpix.fits"
 # SOM delta_z shift covariance
 SOMCOVFILE="SOM_cov_multiplied.asc"
-# ALLPATCH Designation 
+# ALLPATCH Designation
 PATCHALL="NS"
 # Individual PATCH Designations
 PATCHLIST="N S"
@@ -40,17 +38,17 @@ PATCHLO="120 315"
 PATCHHI="240 60"
 # effect mask area
 SURVEYAREA=3.1212e+06  # 867.0 sqdeg
-# Blind Designations  
+# Blind Designations
 BLINDS="C"  # use "NONE" if there is no blinding in the lensfit weights
 
 # Goldsets to analyse. Define new gold sets in `construct_dr4_goldclasses.R`
 GOLDLIST="Fid"
 
-# SOM Filename 
+# SOM Filename
 SOMFILE="Spec_Train_Adapt_DIR_SOMdata.Rdata"
-# Tomographic bin clusters (spec training) 
+# Tomographic bin clusters (spec training)
 TOMO_CLUST_SPEC_TRAIN="4000 2200 2800 4200 2000 2000"
-# Tomographic bin limits 
+# Tomographic bin limits
 TOMO_LIMS="0.1 0.3 0.5 0.7 0.9 1.2"
 # redshift label in $SPECCAT_ALL
 ZLABEL="Zbest"
