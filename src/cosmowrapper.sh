@@ -31,6 +31,11 @@ then
     echo "ERROR: The Input Directory does not contain the survey footprint mask!"
     exit 1
   fi 
+  elif [ ! -f ${INPUTDIR}/${SOMCOVFILE} ]
+  then
+    echo "ERROR: The Input Directory does not contain the shift parameter covariance file!"
+    exit 1
+  fi 
 else 
   echo "ERROR: The Input Directory (containing the spectroscopic & photometric catalogues, and survey footprint mask) does not exist!"
   exit 1
