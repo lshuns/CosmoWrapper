@@ -220,48 +220,9 @@ then
       --outputpath ${OUTPUTDIR}/ \
       --nzformat .asc \
       >> ${OUTPUTDIR}/construct_dr4_goldclasses.log
-    ${P_RSCRIPT} get_SOM_cellcounts.R \
-      ${OUTPUTDIR}/${SOMFILE} \
-      ${OUTPUTDIR}/${SPECCAT_ALL_ADAPT//.fits/_allgoldclass.fits}
-    ${P_RSCRIPT} get_SOM_cellcounts.R \
-      ${OUTPUTDIR}/${SOMFILE} \
-      ${OUTPUTDIR}/${PHOTCAT_ALL_DCOL//.cat/_allgoldclass.fits}
   else 
     echo "Gold Catalogues Already Exists! Skipping!" 
     echo "(${OUTPUTDIR}/${PHOTCAT_ALL_DCOL//.cat/_allgoldclass.fits})"
-  fi 
-  #/*fend*/}}}
-fi
-
-#### this is only for the m-bias calibration ####
-if [ "${1}" == "5a" -o "${1}" == "" ]
-then
-  outputdirMBIAS="output_for_mbias"
-  ##Construct the Gold Classes  /*fold*/ {{{
-  if [ ! -d ${outputdirMBIAS}/ ]
-  then
-    mkdir ${outputdirMBIAS}
-    for cosmosfile in /net/home/fohlen12/awright/KiDS/DR4/DIR/Iteration1/COSMOS/COSMOSadaptdepth_ugri.V0.5.9A_ZYJHK.V2.0_photoz_LF_mask_SG_recalweight{,_goodgals_3x4x4}.cat
-    do
-      cosmosbase=$(basename ${cosmosfile})
-      adaptfile=${outputdirMBIAS}/${cosmosbase//.cat/_adapt.fits}
-      echo "==> processing ${cosmosbase}"
-      echo "Constructing COSMOS Adapt Catalogue {"
-      ${P_RSCRIPT} construct_adapt_catalogue.R ${cosmosfile} ${adaptfile}
-      echo "} - Done" 
-      echo "Constructing the COSMOS Goldclass subsets" 
-      time ${P_RSCRIPT} construct_dr4_goldclasses.R \
-        -p ${adaptfile} \
-        -s ${OUTPUTDIR}/${SPECCAT_ALL_ADAPT} \
-        --som ${OUTPUTDIR}/${SOMFILE} \
-        --blinds "NONE" \
-        --outputpath ${outputdirMBIAS}/ \
-        --nzformat .asc \
-        >> ${outputdirMBIAS}/construct_cosmos_goldclasses.log
-      done
-  else 
-    echo "Output Folder Already Exist! Skipping!" 
-    echo "(${outputdirMBIAS})"
   fi 
   #/*fend*/}}}
 fi
@@ -276,19 +237,7 @@ then
     GOLDFLAGLIST=""
     for goldset in ${GOLDLIST}
     do 
-      if [ "${goldset}" != "ORIG" ] && [ "${goldset}" != "ORIGmbias" ]
-      then
-        if [ "`echo ${goldset} | grep -c NONE`" == "0" ] 
-        then 
-          GoldSetLink=${goldset//_nodz/}
-          GoldSetLink=${GoldSetLink//_trunc3/}
-          GoldSetLink=${GoldSetLink//_trunc/}
-          GoldSetLink=${GoldSetLink//_HartleyBest/}
-          GoldSetLink=${GoldSetLink//_HartleyWorst/}
-          GoldSetLink=${GoldSetLink//_Hartley/}
-          GOLDFLAGLIST=`echo $GOLDFLAGLIST Flag_SOM_${GoldSetLink}`
-        fi 
-      fi
+      GOLDFLAGLIST=`echo $GOLDFLAGLIST Flag_SOM_${goldset}`
     done
     python merge_ldac_and_fits.py ${OUTPUTDIR}/${PHOTCAT_ALL} \
       ${OUTPUTDIR}/${PHOTCAT_ALL_DCOL//.cat/_allgoldclass.fits} \
@@ -380,21 +329,6 @@ then
     sed "s/@@GOLDSET@@/${GoldSet}/g" configure.sh > configure_${GoldSet}.sh 
     #/*fend*/}}}
 
-    GoldSetLink=${GoldSet//_nodz/}
-    GoldSetLink=${GoldSetLink//_trunc3/}
-    GoldSetLink=${GoldSetLink//_trunc/}
-    GoldSetLink=${GoldSetLink//_HartleyBest/}
-    GoldSetLink=${GoldSetLink//_HartleyWorst/}
-    GoldSetLink=${GoldSetLink//_Hartley/}
-    GoldSetTail=${GoldSet//$GoldSetLink/}
-    if [ "${GoldSetTail}" != "" ]
-    then 
-      #Remove the '_shift' from the subsetting & Nz /*fold*/ {{{
-      sed -i.bak "s/Flag_SOM_${GoldSet}/Flag_SOM_${GoldSetLink}/g" configure_${GoldSet}.sh
-      sed -i.bak "s/${GoldSet}_blind${BLINDS}/${GoldSetLink}_blind${BLINDS}/g" configure_${GoldSet}.sh
-      #/*fend*/}}}
-    fi
-    
     #For each selection, link the shear data  /*fold*/ {{{
     mkdir -p GoldSet_${GoldSet}/
     cd ${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/
@@ -407,40 +341,8 @@ then
     
     mkdir -p PatchData/
     cd PatchData/
-    cp /net/home/fohlen12/awright/KiDS/Cosmo/PatchData/SOM_cov_multiplied.asc ./
-    if [ "${GoldSet}" == "ORIG" ] || [ "${GoldSet}" == "ORIGmbias" ]
-    then
-      ################## LINK THE DR4 Photometric data Here ############################
-      ${DIR_LDAC}/ldacdelkey${THELI} \
-        -i /net/fohlen12/home/awright/KiDS/DR4/DIR/Iteration2/GoldClasses/K1000_NS_V1.0.0A_ugriZYJHKs_photoz_SG_mask_LF_svn_309c_2Dbins_v2_goldclasses.cat \
-        -t OBJECTS -k PSFeabs \
-        -o ${PHOTCAT_ALL_GOLD}
-      ###Separate the N & S
-      #Recreate all patchwise catalogues  /*fold*/ {{{
-      for PATCHNUM in `seq ${NPATCH}`
-      do 
-        #Get the patch definitions 
-        PATCH=`echo $PATCHLIST | awk -v n=${PATCHNUM} '{print $n}'`
-        TMPLO=`echo $PATCHLO   | awk -v n=${PATCHNUM} '{print $n}'`
-        TMPHI=`echo $PATCHHI   | awk -v n=${PATCHNUM} '{print $n}'`
-        #Filter the ALLPATCH catalogue on RA
-        if [ $TMPLO -lt $TMPHI ]
-        then 
-          #Normal RA limits: pick lo < RA <= hi 
-          python3 ldacfilter.py \
-            -i ${PHOTCAT_ALL_GOLD} -o ${PHOTCAT_ALL_GOLD//${PATCHALL}/${PATCH}} \
-            -c "((ALPHA_J2000>${TMPLO})AND(ALPHA_J2000<=${TMPHI}));"
-        else 
-          #RA limits cross the RA=0 boundary: pick (RA > lo | RA <= hi)
-          python3 ldacfilter.py \
-            -i ${PHOTCAT_ALL_GOLD} -o ${PHOTCAT_ALL_GOLD//${PATCHALL}/${PATCH}} \
-            -c "((ALPHA_J2000>${TMPLO})OR(ALPHA_J2000<=${TMPHI}));"
-        fi 
-      done
-      #/*fend*/}}}
-    else
-      ln -s ${ROOT}/${OUTPUTDIR}/${PHOTCAT_ALL_GOLD//${PATCHALL}/*} .
-    fi
+    cp ${INPUTDIR}/${SOMCOVFILE} ./
+    ln -s ${ROOT}/${OUTPUTDIR}/${PHOTCAT_ALL_GOLD//${PATCHALL}/*} .
     #/*fend*/}}}
     
     cd ${ROOT}/COSMOPIPE
@@ -448,95 +350,16 @@ then
     sed -i.bak 's/^NTHETABINXI=/NTHETABINXI="4000"  #/g' configure_${GoldSet}.sh
     sed -i.bak "s/^DZPRIORMU=/DZPRIORMU='0.000 0.002 0.013 0.011 -0.006'  #/g" configure_${GoldSet}.sh
     sed -i.bak "s/^DZPRIORSD=/DZPRIORSD='0.010 0.011 0.012 0.008 0.010'  #/g" configure_${GoldSet}.sh
-    if [ "${GoldSetLink}" == "Fid" ]
-    then
-      # bin1: -0.0016485259165871778 0.008904576570799095
-      # bin2: -0.003807666962710251 0.006404266275882894
-      # bin3: -0.006643348533635084 0.006419427909272947
-      # bin4: 0.009886030380149706 0.006303345896370764
-      # bin5: 0.012568191803766029 0.00805985325907987
-      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.002 -0.004 -0.007  0.010  0.013'  #/g" configure_${GoldSet}.sh
-    elif [ "${GoldSetLink}" == "Fid_noDEVILS" ]
-    then
-      # bin1: -0.0006296010406884851 0.008959283310110677
-      # bin2: -0.0035735855359605093 0.006388020567536477
-      # bin3: -0.006306263945970698 0.006469089845731768
-      # bin4: 0.009919566143734643 0.006314314949824238
-      # bin5: 0.012115237814203416 0.008050799624364158
-      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.001 -0.004 -0.006  0.010  0.012'  #/g" configure_${GoldSet}.sh
-    elif [ "${GoldSetLink}" == "plusPAUS" ]
-    then
-      # bin1: -0.0023269334232442337 0.008881225542425614
-      # bin2: -0.0029790066285479925 0.006441456034541765
-      # bin3: -0.0070332933389989985 0.006332818762900888
-      # bin4: 0.010782697374635396 0.006191342761070044
-      # bin5: 0.01278004986505398 0.008077782673125838
-      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.002 -0.003 -0.007  0.011  0.013'  #/g" configure_${GoldSet}.sh
-    elif [ "${GoldSetLink}" == "plusPAUSCOS15" ]
-    then
-      # bin1: -0.002792870134373022 0.008812701227445935
-      # bin2: -0.0016483355948774612 0.006352654044074562
-      # bin3: -0.009192201411269077 0.006355127294115379
-      # bin4: 0.011582944825210256 0.006148865119996802
-      # bin5: 0.012778279589247288 0.008105332732460821
-      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.003 -0.002 -0.009  0.012  0.013'  #/g" configure_${GoldSet}.sh
-    elif [ "${GoldSetLink}" == "nQ4" ]
-    then
-      # bin1: -0.0026642073311282087 0.008818247240945178
-      # bin2: -0.0032242871494365362 0.006441279974643757
-      # bin3: -0.006050157239036261 0.006465505709428217
-      # bin4: 0.00972924294508508 0.006306496528352218
-      # bin5: 0.012057486009379663 0.008172350342013841
-      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.003 -0.003 -0.006  0.010  0.012'  #/g" configure_${GoldSet}.sh
-    elif [ "${GoldSetLink}" == "ORIGmbias" ]
-    then
-      # bin1: -0.00995963912967607 0.008829221143656404
-      # bin2: -0.00948511955203911 0.006330450857610293
-      # bin3: -0.010991440899624444 0.006405850945378147
-      # bin4: 0.007935261534419119 0.0064177568310609875
-      # bin5: 0.012048666602049432 0.008072118337971662
-      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.010 -0.009 -0.011  0.008  0.012'  #/g" configure_${GoldSet}.sh
-    elif [ "${GoldSetLink}" == "onlyPAUS" ]
-    then
-      # bin1: -0.00458597126644202 0.008741059158244661
-      # bin2: -0.003643567173407195 0.006439610824645876
-      # bin3: -0.008529529637254405 0.0064225852457679075
-      # bin4: 0.007650934867507904 0.00630644123981858
-      # bin5: 0.008388372515304082 0.008299943911760298
-      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.005 -0.004 -0.009  0.008  0.008'  #/g" configure_${GoldSet}.sh
-    elif [ "${GoldSetLink}" == "onlyCOS15" ]
-    then
-      # bin1: -0.005770889954998207 0.008793911790837761
-      # bin2: -0.0020081134463004425 0.006317168825689079
-      # bin3: -0.009806280648000813 0.006403457221758943
-      # bin4: 0.010404674721148812 0.00615987688108042
-      # bin5: 0.012236512101840432 0.008077742500524721
-      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.006 -0.002 -0.010  0.010  0.012'  #/g" configure_${GoldSet}.sh
-    elif [ "${GoldSetLink}" == "onlyPAUSCOS15" ]
-    then
-      # bin1: -0.006582387963870873 0.008872398780046082
-      # bin2: -0.002017237730717207 0.006312960389114971
-      # bin3: -0.009500122495017251 0.006392180202636211
-      # bin4: 0.010547957903941751 0.0061493420460075375
-      # bin5: 0.012232415677480046 0.008077742500524721
-      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.007 -0.002 -0.010  0.011  0.012'  #/g" configure_${GoldSet}.sh
-    else
-      # K1000 fiducial (Asgari et al. 2021)
-      # bin1: -0.009 0.019
-      # bin2: -0.011 0.020
-      # bin3: -0.015 0.017
-      # bin4: 0.002 0.012
-      # bin5: 0.007 0.010
-      sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.009 -0.011 -0.015  0.002  0.007'  #/g" configure_${GoldSet}.sh
-    fi
+    # configure m-bias
+    # bin1: -0.0016485259165871778 0.008904576570799095
+    # bin2: -0.003807666962710251 0.006404266275882894
+    # bin3: -0.006643348533635084 0.006419427909272947
+    # bin4: 0.009886030380149706 0.006303345896370764
+    # bin5: 0.012568191803766029 0.00805985325907987
+    sed -i.bak "s/^MBIASVALUES=/MBIASVALUES='-0.002 -0.004 -0.007  0.010  0.013'  #/g" configure_${GoldSet}.sh
     sed -i.bak "s/^MBIASERRORS=/MBIASERRORS=' 0.019  0.020  0.017  0.012  0.010'  #/g" configure_${GoldSet}.sh
-    if [ "${GoldSet}" == "ORIG" ] || [ "${GoldSet}" == "ORIGmbias" ]
-    then
-      ######### USE THE Original Fiducial ###########
-      sed -i.bak "s/^SHEARSUBSET=/SHEARSUBSET=Flag_SOM_Fid_${BLINDS}  #/g" configure_${GoldSet}.sh
-    else
-      sed -i.bak "s/^SHEARSUBSET=/SHEARSUBSET=Flag_SOM_${GoldSetLink}_${BLINDS}  #/g" configure_${GoldSet}.sh
-    fi
+    # set the gold flag name
+    sed -i.bak "s/^SHEARSUBSET=/SHEARSUBSET=Flag_SOM_${GoldSet}_${BLINDS}  #/g" configure_${GoldSet}.sh
     #/*fend*/}}}
     #/*fend*/}}}
   done
@@ -578,82 +401,8 @@ then
     #/*fend*/}}}
     
     #Copy the new SOM Redshift distributions to the Gold runs  /*fold*/ {{{
-    GoldSetLink=${GoldSet//_nodz/}
-    GoldSetLink=${GoldSetLink//_trunc3/}
-    GoldSetLink=${GoldSetLink//_trunc/}
-    GoldSetLink=${GoldSetLink//_HartleyBest/}
-    GoldSetLink=${GoldSetLink//_HartleyWorst/}
-    GoldSetLink=${GoldSetLink//_Hartley/}
-    GoldSetTail=${GoldSet//$GoldSetLink/}
-    if [ "${GoldSet}" == "ORIG" ] || [ "${GoldSet}" == "ORIGmbias" ]
-    then
-      rm -f *_Nz.asc
-      for fpath in /net/home/fohlen12/hendrik/KiDS/data_store/KiDS-1000/SOM_N_of_Z/K1000_NS*blind${BLINDS}*_Nz.asc
-      do
-        fbase=$(basename $fpath)
-        # remove the commented header in the n(z) file from the data store
-        tail -n +2 $fpath > $(echo "$fbase" | sed "s/_Fid_/_${GoldSet}_/g")
-      done
-    elif [ "${GoldSetTail}" == "_trunc" ]
-    then
-      rm -f *_${GoldSetLink}_blind*_Nz.asc
-      for fpath in ${ROOT}/${OUTPUTDIR}/*_${GoldSetLink}_blind*_Nz.asc
-      do
-        # clip n(z) files at 95-th percentile
-        python ${ROOT}/nz_trim_percentile.py $fpath $(basename $fpath) 95.0
-      done
-    elif [ "${GoldSetTail}" == "_trunc3" ]
-    then
-      rm -f *_${GoldSetLink}_blind*_Nz.asc
-      for fpath in ${ROOT}/${OUTPUTDIR}/*_${GoldSetLink}_blind*_Nz.asc
-      do
-        # clip n(z) files at 97-th percentile
-        python ${ROOT}/nz_trim_percentile.py $fpath $(basename $fpath) 97.0
-      done
-    elif [ "${GoldSetTail}" == "_nodz" ]
-    then
-      python ${ROOT}/nz_shift.py \
-        -i ${ROOT}/${OUTPUTDIR}/*_${GoldSetLink}_blind*_Nz.asc \
-        -s 0.000 0.002 0.013 0.011 -0.006 \
-        -o $(pwd)
-    # offset the K1000 values with the data from Fig. 6 in Hartley+20
-    # the mapping from the 4 DES bins to the 5 KiDS bins is a linear combination
-    # map = [[   1    0    0    0]
-    #        [ 1/2  1/2    0    0]
-    #        [   0  2/3  1/3    0]
-    #        [   0    0    1    0]
-    #        [   0    0    0    1]]
-    elif [ "${GoldSetTail}" == "_Hartley" ]
-    then
-      # KiDS prior:   0.000 0.002 0.013 0.011 -0.006
-      # Hartley@KiDS: 0.008 0.015 0.014 -0.003 -0.058
-      # KiDS-Hartley: -0.008 -0.013 -0.001 0.014 0.052
-      python ${ROOT}/nz_shift.py \
-        -i ${ROOT}/${OUTPUTDIR}/*_${GoldSetLink}_blind*_Nz.asc \
-        -s -0.008 -0.013 -0.001 0.014 0.052 \
-        -o $(pwd)
-    elif [ "${GoldSetTail}" == "_HartleyBest" ]
-    then
-      # KiDS prior:   0.000 0.002 0.013 0.011 -0.006
-      # Hartley@KiDS: 0.008 0.015 0.014 -0.003 -0.058
-      # KiDS+Hartley: 0.008 0.017 0.027 0.008 -0.064
-      python ${ROOT}/nz_shift.py \
-        -i ${ROOT}/${OUTPUTDIR}/*_${GoldSetLink}_blind*_Nz.asc \
-        -s 0.008 0.015 0.014 -0.003 -0.058 \
-        -o $(pwd)
-    elif [ "${GoldSetTail}" == "_HartleyWorst" ]
-    then
-      # KiDS prior:   0.000 0.002 0.013 0.011 -0.006
-      # Hartley@KiDS: 0.012 0.014 0.004 -0.020 -0.160
-      # KiDS+Hartley: 0.012 0.016 0.017 -0.009 -0.166
-      python ${ROOT}/nz_shift.py \
-        -i ${ROOT}/${OUTPUTDIR}/*_${GoldSetLink}_blind*_Nz.asc \
-        -s 0.012 0.014 0.004 -0.020 -0.160 \
-        -o $(pwd)
-    else
-      rm -f *_${GoldSetLink}_blind*_Nz.asc
-      ln -s ${ROOT}/${OUTPUTDIR}/*_${GoldSetLink}_blind*_Nz.asc . 
-    fi
+    rm -f *_${GoldSet}_blind*_Nz.asc
+    ln -s ${ROOT}/${OUTPUTDIR}/*_${GoldSet}_blind*_Nz.asc . 
     #/*fend*/}}}
     #/*fend*/}}}
     
@@ -712,80 +461,6 @@ then
       prompt=${GoldSet}
     fi
     sleep 200
-    #/*fend*/}}}
-  done
-  echo "Running Post-processing (`date`)" 
-  #/*fend*/}}}
-fi 
-
-if [ "${1}" == "11a" -o "${1}" == "" ]
-then
-  #Run the Gold Samples with maxlike sampler for MAP /*fold*/ {{{
-  P_PYTHON=${ROOT}/COSMOPIPE/INSTALL/miniconda3/bin/python3
-  #install Marika's custom maxlike sampler
-  installdir=${ROOT}/COSMOPIPE/INSTALL/kids1000_chains
-  if [ ! -e ${installdir} ]
-  then
-    git clone git@bitbucket.org:marika_a/kids1000_chains.git ${installdir}
-  else
-    cd ${installdir}
-    git pull
-    cd ${ROOT}
-  fi
-
-  #Run the least square fitting
-  for GoldSet in ${GOLDLIST}
-  do
-    maxlike_out=${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/${STORAGEDIR}/LeastSquares/output/K1000_UNBLINDED/cosebis/
-    if [ ! -e ${maxlike_out} ]
-    then
-      mkdir -p ${maxlike_out}
-    fi
-    #create runtime script that is executed in a screen
-    runtime_script=${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/RUNTIME/scripts/run_leastsquares.sh
-    echo "#!/usr/bin/env bash
-${P_PYTHON} ${installdir}/maxlike/maxlike_cosmosis.py \
-  -i ${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/RUNTIME/scripts//COSEBIs_chain.ini \
-  -m ${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/${STORAGEDIR}/MCMC/output/K1000_UNBLINDED/cosebis/chain/output_multinest_${BLINDS}.txt \
-  -o ${maxlike_out}/output_${BLINDS}.txt \
-  --max_post -s \
-  --best_fit_value ${maxlike_out}/best_fit_value.txt \
-  --best_fit_priors ${maxlike_out}/best_fit_priors.txt \
-  --maxiter 3000" > ${runtime_script}
-
-    #Check if we can launch another run  /*fold*/ {{{
-    while [ `ps au | grep -v "bash -c " | grep -v grep | grep -c run_leastsquares` -ge ${MAXRUNS} ]
-    do
-      #If this is the first loop of the wait, then print what is running  /*fold*/ {{{
-      if [ "${prompt}" != "${GoldSet}" ]
-      then
-        echo "Paused before starting ${GoldSet}: Maximum simultaneous runs reached (`date`)"
-        prompt=${GoldSet}
-      fi
-      sleep 60
-      #/*fend*/}}}
-    done
-    echo "Launching GoldSet ${GoldSet}: `ps au | grep -v 'bash -c ' | grep -v grep | grep -c run_leastsquares` -ge ${MAXRUNS} (`date`)" 
-    #/*fend*/}}}
-    
-    #Run the main script  /*fold*/ {{{
-    logfile=${maxlike_out}/cosebis_leastsquares_output.log
-    screen -S CosmoWrapper_Goldset_${GoldSet}_$$.sh -d -m bash -c "nice -n 10 bash ${runtime_script} > ${logfile} 2>&1"
-    sleep 1
-    #/*fend*/}}}
-  done
-  #/*fend*/}}}
-
-  #Check if we can continue  /*fold*/ {{{
-  while [ `ps au | grep -v "bash -c " | grep -v grep | grep -c run_leastsquares` -ge 1 ]
-  do
-    #If this is the first loop of the wait, then print what is running  /*fold*/ {{{
-    if [ "${prompt}" != "${GoldSet}" ]
-    then
-      echo "Waiting before post-processing (`date`)"
-      prompt=${GoldSet}
-    fi
-    sleep 60
     #/*fend*/}}}
   done
   echo "Running Post-processing (`date`)" 

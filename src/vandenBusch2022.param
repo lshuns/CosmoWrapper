@@ -26,6 +26,8 @@ FILEBODY="V1.0.0A_ugriZYJHKs_photoz_SG_mask_LF_svn_309c_2Dbins_v2"
 PHOTCAT_ALL="K1000_NS_${FILEBODY}.cat"
 # Survey Footprint Mask 
 MASKFILE="KiDS_K1000_healpix.fits"
+# SOM delta_z shift covariance
+SOMCOVFILE="SOM_cov_multiplied.asc"
 # ALLPATCH Designation 
 PATCHALL="NS"
 # Individual PATCH Designations
@@ -39,8 +41,8 @@ SURVEYAREA=3.1212e+06  # 867.0 sqdeg
 # Blind Designations  
 BLINDS="C"  # use "NONE" if there is no blinding in the lensfit weights
 
-# Define the goldsets to analyse
-GOLDLIST="ORIG Fid plusPAUSCOS15 nQ4 nQ4_Hartley Fid_trunc3 ORIGmbias onlyCOS15 plusPAUS onlyPAUSCOS15 onlyPAUS Fid_nodz Fid_trunc nQ4_HartleyBest nQ4_HartleyWorst Fid_noDEVILS"
+# Goldsets to analyse. Define new gold sets in `construct_dr4_goldclasses.R`
+GOLDLIST="Fid"
 
 # SOM Filename 
 SOMFILE="Spec_Train_Adapt_DIR_SOMdata.Rdata"

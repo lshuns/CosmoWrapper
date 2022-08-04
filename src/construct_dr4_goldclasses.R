@@ -2,6 +2,8 @@
 # Script to construct survey goldclass. 
 # Adapted from script construct_survey_goldclass.R & others 
 #
+# Define custom goldsets below in variable `class.sets`
+#
 
 inputs<-commandArgs(T)
 
@@ -58,25 +60,6 @@ QC.expr<-"abs(mean(spec$redshift,na.rm=T)-weighted.mean(phot$Z_B,phot$recal_weig
 tomo.bin<-c(4000,2200,2800,4200,2000)
 tomo.lim<-c(0.1,0.3,0.5,0.7,0.9,1.2)
 nz.format<-'.fits'
-#/*fend*/}}}
-
-##Define the various SOM GoldClass sets /*fold*/{{{
-#class.sets<-rbind(c("Fid",          "phot$SurveyGoldFlag>=0",         "spec$z_Flag>0"      ),
-#                  c("noVVDS",       "!phot$SurveyGoldFlag%in%c(0,16)","spec$SurveyFlag!=16"),
-#                  c("nozCOSMOS",    "!phot$SurveyGoldFlag%in%c(0,2)", "spec$SurveyFlag!=2" ),
-#                  c("noDEEP2",      "!phot$SurveyGoldFlag%in%c(0,4)", "spec$SurveyFlag!=4" ),
-#                  c("speczquality4","phot$RedshiftGoldClass>=2",      "spec$z_Flag>=4"     ),
-#                  c("multispec3",   "phot$SurveyGoldClass>=3",        "spec$z_Flag>0"      ))
-##/*fend*/}}}
-#Define the JLvdB SOM GoldClass sets /*fold*/{{{
-class.sets<-rbind(c("nQ4",            "phot$RedshiftGoldClass>=0",  "spec$z_Flag>=4",                     "Zbest"),
-                  c("Fid",            "phot$RedshiftGoldClass>=0",  "spec$z_Flag>=3",                     "Zbest"),
-                  c("plusPAUS",       "phot$RedshiftGoldClass>=0",  "spec$z_Flag>=2",                     "Zbest"),
-                  c("plusPAUSCOS15",  "phot$RedshiftGoldClass>=0",  "spec$z_Flag>=1",                     "Zbest"),
-                  c("onlyPAUS",       "phot$RedshiftGoldClass>=0",  "bitwAnd(spec$Zsource,2L)==2L",       "Zpaus"),
-                  c("onlyCOS15",      "phot$RedshiftGoldClass>=0",  "bitwAnd(spec$Zsource,4L)==4L",       "Zcos15"),
-                  c("onlyPAUSCOS15",  "phot$RedshiftGoldClass>=0",  "spec$Zsource>1",                     "ZbestPhot"),
-                  c("Fid_noDEVILS",   "phot$RedshiftGoldClass>=0",  "(spec$z_Flag>=3)&(spec$source!=10)", "Zbest"))
 #/*fend*/}}}
 
 #Define the datasets /*fold*/{{{
@@ -207,6 +190,20 @@ while (length(inputs)!=0) {
   }
 }
 #/*fend*/}}}
+
+#################### Modify goldclasses here ##################################
+#
+#Define the JLvdB SOM GoldClass sets /*fold*/{{{
+# Format: c(
+#  name in GOLDLIST,
+#  shear catalogue sample cuts,
+#  calibration sample cuts,
+#  redshift column name)
+class.sets<-rbind(c("Fid", "phot$RedshiftGoldClass>=0", "spec$z_Flag>=3", "Zbest"),)
+#/*fend*/}}}
+#
+#################### Modify goldclasses here ##################################
+
 
 #Check the input tomolims /*fold*/{{{
 maxBin<-length(tomo.lim)-1
