@@ -50,6 +50,9 @@ mkdir -p ${OUTPUTDIR}
 SPECCAT_ALL_ADAPT=${SPECCAT_ALL//.csv/_adapt.fits}
 #/*fend*/}}}
 
+
+################################### STEP 01 ###################################
+# replace the original magnitudes by the adapted ones
 if [ "${1}" == "1" -o "${1}" == "" ]
 then
   #Construct the Spectrosopic Adapt Catalogue  /*fold*/ {{{
@@ -75,6 +78,9 @@ do
 done 
 #/*fend*/}}}
 
+
+################################### STEP 02 ###################################
+# Combine the patch-wise catalogues into a single one
 if [ "${1}" == "2" -o "${1}" == "" ]
 then
   #Construct the Combined Photometry Catalogue from Patches  /*fold*/ {{{
@@ -90,9 +96,10 @@ then
   #/*fend*/}}}
 fi
 
-#Phot cat DIR columns 
-PHOTCAT_ALL_DCOL=${PHOTCAT_ALL//.cat/_DIRcols.cat}
 
+################################### STEP 03 ###################################
+# Combine the patch-wise catalogues into a single one
+PHOTCAT_ALL_DCOL=${PHOTCAT_ALL//.cat/_DIRcols.cat}
 if [ "${1}" == "3" -o "${1}" == "" ]
 then
   #Select DIRcol subset (within LDAC)  /*fold*/ {{{
@@ -110,6 +117,9 @@ then
   #/*fend*/}}}
 fi
 
+
+################################### STEP 04 ###################################
+# Train the SOM on the calibration data
 if [ "${1}" == "4" -o "${1}" == "" ]
 then
   if [ ! -f SOM_DIR.R ]
@@ -162,55 +172,9 @@ then
   #/*fend*/}}}
 fi
 
-if [ "${1}" == "4a" -o "${1}" == "" ]
-then
-  #Construct the Tomographic Bin Catalogues /*fold*/ {{{
-  if [ ! -f ${OUTPUTDIR}/${SPECCAT_ALL_ADAPT//_adapt/_adapt_TOMO1} ]
-  then 
-    echo "Generating Tomographic Bin Catalogues" 
-    ${P_RSCRIPT} construct_tomo_bins.R ${OUTPUTDIR}/${PHOTCAT_ALL_DCOL}
-    ${P_RSCRIPT} construct_tomo_bins.R ${OUTPUTDIR}/${SPECCAT_ALL_ADAPT}
-  fi 
-  #/*fend*/}}}
-  #Optimise the cluster size for each tomographic bin /*fold*/ {{{
-  if [ ! -f ${OUTPUTDIR}/${SOMFILE//_SOMdata/_TOMO1} ]
-  then 
-    echo "Optimising Cluster Sizes" 
-    for TOMO in `seq 5`
-    do 
-      ${P_RSCRIPT} SOM_DIR.R \
-        -r ${OUTPUTDIR}/${PHOTCAT_ALL_DCOL//_DIRcols.cat/_DIRcols_TOMO${TOMO}.fits} -t ${OUTPUTDIR}/${SPECCAT_ALL_ADAPT//_adapt/_adapt_TOMO${TOMO}} \
-        --toroidal --topo hexagonal --som.dim 101 101 -np -fn Inf \
-        -sc ${MAXTHREADS} --optimise --refr.flag -cr recal_weight \
-        --old.som ${OUTPUTDIR}/${SOMFILE} \
-        -o ${OUTPUTDIR} -of ${SOMFILE//_SOMdata/_TOMO${TOMO}} \
-        --zr.label Z_B --zt.label Zbest \
-        -k MAG_GAAP_u-MAG_GAAP_g \
-        MAG_GAAP_u-MAG_GAAP_r MAG_GAAP_g-MAG_GAAP_r \
-        MAG_GAAP_u-MAG_GAAP_i MAG_GAAP_g-MAG_GAAP_i \
-        MAG_GAAP_r-MAG_GAAP_i MAG_GAAP_u-MAG_GAAP_Z \
-        MAG_GAAP_g-MAG_GAAP_Z MAG_GAAP_r-MAG_GAAP_Z \
-        MAG_GAAP_i-MAG_GAAP_Z MAG_GAAP_u-MAG_GAAP_Y \
-        MAG_GAAP_g-MAG_GAAP_Y MAG_GAAP_r-MAG_GAAP_Y \
-        MAG_GAAP_i-MAG_GAAP_Y MAG_GAAP_Z-MAG_GAAP_Y \
-        MAG_GAAP_u-MAG_GAAP_J MAG_GAAP_g-MAG_GAAP_J \
-        MAG_GAAP_r-MAG_GAAP_J MAG_GAAP_i-MAG_GAAP_J \
-        MAG_GAAP_Z-MAG_GAAP_J MAG_GAAP_Y-MAG_GAAP_J \
-        MAG_GAAP_u-MAG_GAAP_H MAG_GAAP_g-MAG_GAAP_H \
-        MAG_GAAP_r-MAG_GAAP_H MAG_GAAP_i-MAG_GAAP_H \
-        MAG_GAAP_Z-MAG_GAAP_H MAG_GAAP_Y-MAG_GAAP_H \
-        MAG_GAAP_J-MAG_GAAP_H MAG_GAAP_u-MAG_GAAP_Ks \
-        MAG_GAAP_g-MAG_GAAP_Ks MAG_GAAP_r-MAG_GAAP_Ks \
-        MAG_GAAP_i-MAG_GAAP_Ks MAG_GAAP_Z-MAG_GAAP_Ks \
-        MAG_GAAP_Y-MAG_GAAP_Ks MAG_GAAP_J-MAG_GAAP_Ks \
-        MAG_GAAP_H-MAG_GAAP_Ks MAG_AUTO >> ${OUTPUTDIR}/cluster_optimisation.log
-    done
-  else 
-    echo "Cluster Optimisation already done! Skipping!" 
-  fi 
-  #/*fend*/}}}
-fi
 
+################################### STEP 05 ###################################
+# Define the gold sample and compute the SOM redshift distributions
 if [ "${1}" == "5" -o "${1}" == "" ]
 then
   ##Construct the Gold Classes  /*fold*/ {{{
@@ -232,6 +196,9 @@ then
   #/*fend*/}}}
 fi
 
+
+################################### STEP 06 ###################################
+# Merge all SOM weights and gold flags into one catalogue
 PHOTCAT_ALL_GOLD=${PHOTCAT_ALL//.cat/_goldclasses.cat}
 if [ "${1}" == "6" -o "${1}" == "" ]
 then
@@ -254,6 +221,9 @@ then
   #/*fend*/}}}
 fi
 
+
+################################### STEP 07 ###################################
+# Split the gold sample catalogues into patches
 if [ "${1}" == "7" -o "${1}" == "" ]
 then
   #Recreate all patchwise catalogues  /*fold*/ {{{
@@ -280,6 +250,9 @@ then
   #/*fend*/}}}
 fi
 
+
+################################### STEP 08 ###################################
+# Install CosmoPipe
 if [ "${1}" == "8" -o "${1}" == "" ]
 then
   #Run the CosmoPipe Installation  /*fold*/ {{{
@@ -298,11 +271,6 @@ then
   git checkout K1000
   cd ${ROOT}
 
-  RESTORE_PATH=${PATH}
-  if [ "P_GCC" != "" ]
-  then
-    export PATH=${P_GCC}:${RESTORE_PATH}
-  fi
   bash INSTALL/CosmoPipe/COSMOPIPE_MASTER_INSTALL.sh \
     --noconfig \
     --packroot ${ROOT}/INSTALL/CosmoPipe/ \
@@ -320,10 +288,12 @@ then
     --surveyarea ${SURVEYAREA} \
     --blind ${BLINDS} \
     --blinding UNBLINDED
-  export PATH=${RESTORE_PATH}
   #/*fend*/}}}
 fi
 
+
+################################### STEP 09 ###################################
+# Configure CosmoPipe for the gold samples
 if [ "${1}" == "9" -o "${1}" == "" ]
 then
   #Update the configure files  /*fold*/ {{{
@@ -372,6 +342,8 @@ then
   #/*fend*/}}}
 fi 
 
+################################### STEP 10 ###################################
+# Link gold catalogues and redshift distributions into the CosmoPipe directory
 if [ "${1}" == "10" -o "${1}" == "" ]
 then
   #Run the Gold Samples  /*fold*/ {{{
@@ -421,7 +393,10 @@ then
   done
   #/*fend*/}}}
 fi
-    
+
+
+################################### STEP 11 ###################################
+# Run CosmoPipe: measurements, data vector, covariance and multinest sampling
 if [ "${1}" == "11" -o "${1}" == "" ]
 then
   #Run the Gold Samples  /*fold*/ {{{
@@ -472,8 +447,87 @@ then
   #/*fend*/}}}
 fi 
 
-#Construct the output figures and tables
+
+################################### STEP 12 ###################################
+# Run CosmoPipe: minimisation for best best-fit parameter estimate
 if [ "${1}" == "12" -o "${1}" == "" ]
+then
+  #Run the Gold Samples with maxlike sampler for MAP /*fold*/ {{{
+  P_PYTHON=${ROOT}/COSMOPIPE/INSTALL/miniconda3/bin/python3
+  #install Marika's custom maxlike sampler
+  installdir=${ROOT}/COSMOPIPE/INSTALL/kids1000_chains
+  if [ ! -e ${installdir} ]
+  then
+    git clone git@bitbucket.org:marika_a/kids1000_chains.git ${installdir}
+  else
+    cd ${installdir}
+    git pull
+    cd ${ROOT}
+  fi
+
+  #Run the least square fitting
+  for GoldSet in ${GOLDLIST}
+  do
+    maxlike_out=${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/${STORAGEDIR}/LeastSquares/output/K1000_UNBLINDED/cosebis/
+    if [ ! -e ${maxlike_out} ]
+    then
+      mkdir -p ${maxlike_out}
+    fi
+    #create runtime script that is executed in a screen
+    runtime_script=${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/RUNTIME/scripts/run_leastsquares.sh
+    echo "#!/usr/bin/env bash
+${P_PYTHON} ${installdir}/maxlike/maxlike_cosmosis.py \
+  -i ${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/RUNTIME/scripts//COSEBIs_chain.ini \
+  -m ${ROOT}/COSMOPIPE/GoldSet_${GoldSet}/${STORAGEDIR}/MCMC/output/K1000_UNBLINDED/cosebis/chain/output_multinest_${BLINDS}.txt \
+  -o ${maxlike_out}/output_${BLINDS}.txt \
+  --max_post -s \
+  --best_fit_value ${maxlike_out}/best_fit_value.txt \
+  --best_fit_priors ${maxlike_out}/best_fit_priors.txt \
+  --maxiter 3000" > ${runtime_script}
+
+    #Check if we can launch another run  /*fold*/ {{{
+    while [ `ps au | grep -v "bash -c " | grep -v grep | grep -c run_leastsquares` -ge ${MAXRUNS} ]
+    do
+      #If this is the first loop of the wait, then print what is running  /*fold*/ {{{
+      if [ "${prompt}" != "${GoldSet}" ]
+      then
+        echo "Paused before starting ${GoldSet}: Maximum simultaneous runs reached (`date`)"
+        prompt=${GoldSet}
+      fi
+      sleep 60
+      #/*fend*/}}}
+    done
+    echo "Launching GoldSet ${GoldSet}: `ps au | grep -v 'bash -c ' | grep -v grep | grep -c run_leastsquares` -ge ${MAXRUNS} (`date`)" 
+    #/*fend*/}}}
+    
+    #Run the main script  /*fold*/ {{{
+    logfile=${maxlike_out}/cosebis_leastsquares_output.log
+    screen -S CosmoWrapper_Goldset_${GoldSet}_$$.sh -d -m bash -c "nice -n 10 bash ${runtime_script} > ${logfile} 2>&1"
+    sleep 1
+    #/*fend*/}}}
+  done
+  #/*fend*/}}}
+
+  #Check if we can continue  /*fold*/ {{{
+  while [ `ps au | grep -v "bash -c " | grep -v grep | grep -c run_leastsquares` -ge 1 ]
+  do
+    #If this is the first loop of the wait, then print what is running  /*fold*/ {{{
+    if [ "${prompt}" != "${GoldSet}" ]
+    then
+      echo "Waiting before post-processing (`date`)"
+      prompt=${GoldSet}
+    fi
+    sleep 60
+    #/*fend*/}}}
+  done
+  echo "Running Post-processing (`date`)" 
+  #/*fend*/}}}
+fi 
+
+
+################################### STEP 13 ###################################
+# Download Planck TTTEEE and create basic S8 comparison plots.
+if [ "${1}" == "13" -o "${1}" == "" ]
 then 
   #Construct the Chain Directories 
   cd ${ROOT}

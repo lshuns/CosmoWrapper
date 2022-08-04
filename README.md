@@ -2,7 +2,6 @@
 
 Scripts to wrap the CosmoPipe for use in Wright et al 2020b
 
-
 Script takes the KiDS+VIKING-450 dataset and computes: 
 - 6 sets of gold samples:
   -> Fiducial gold class, restricting analysis to photometric sources which are represented by any specz 
@@ -13,7 +12,11 @@ Script takes the KiDS+VIKING-450 dataset and computes:
 - Runs the CosmoPipe
 - Plots the results 
 
-## INSTALL
+## Requirements
+
+Requires to configure access with SSH tokens for `github.com` and `bitbucket.com`.
+
+## Installation
 
 Create conda environment:
 > conda env create --file environment.yml
