@@ -4,7 +4,7 @@
 
 #Check for an R installation 
 P_R=`which R`
-if [ "${P_R}" == ""] 
+if [ "${P_R}" == "" ] 
 then 
   echo ERROR: There is no R executable in the PATH
   exit 1 
@@ -29,15 +29,11 @@ require.and.load<-function(name,githubrep,force=FALSE) {
         }
     }
 }
-require.and.load('RColorBrewer') 
-require.and.load('matrixStats')
-require.and.load('data.table') 
-require.and.load('helpRfuncs','AngusWright') 
-require.and.load('FITSio') 
-require.and.load('foreach')
-require.and.load('doParallel')
-require.and.load('itertools')
-require.and.load('kohonen/kohonen','AngusWright') 
+require.and.load('data.table')
+require.and.load('plotrix')
+require.and.load('Rfits','ASGR')
+require.and.load('helpRfuncs','AngusWright')
+require.and.load('kohonen/kohonen','AngusWright')
 
 EOF
 

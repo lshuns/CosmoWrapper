@@ -6,3 +6,7 @@ channels:
 dependencies:
   - r=4.1
   - r-remotes
+  - python=3.8
+  - pip
+  - pip:
+    - -r requirements.txt
