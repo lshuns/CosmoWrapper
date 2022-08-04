@@ -7,7 +7,7 @@
 set -e 
 
 #Source the default parameters file /*fold*/ {{{
-source vandenBusch2021.param
+source vandenBusch2022.param
 export OMP_NUM_THREADS=${MAXTHREADS}
 #/*fend*/}}}
 

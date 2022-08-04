@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source vandenBusch2021.param
+source vandenBusch2022.param
 export OMP_NUM_THREADS=${MAXTHREADS}
 ROOT=`pwd`
 
