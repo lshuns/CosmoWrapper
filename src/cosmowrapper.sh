@@ -40,6 +40,10 @@ else
   echo "ERROR: The Input Directory (containing the spectroscopic & photometric catalogues, and survey footprint mask) does not exist!"
   exit 1
 fi 
+if [ ! -d ${COSMOFISHER} ]
+then
+  echo "ERROR: CosmoFisher installation path does not exist!"
+fi
 #/*fend*/}}}
 
 #Make the output directory  /*fold*/ {{{
