@@ -22,3 +22,5 @@ Create conda environment:
 
 Create working directory at `PATH`:
 > bash setup_workspace.sh [PATH]
+This will link all scripts from `src` into `PATH` and copy the
+`vandenBusch21.param` file.
