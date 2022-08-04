@@ -7,7 +7,7 @@
 set -e 
 
 #Source the default parameters file /*fold*/ {{{
-source vandenBusch2022.param
+source cosmowrapper.param
 export OMP_NUM_THREADS=${MAXTHREADS}
 #/*fend*/}}}
 
@@ -275,7 +275,7 @@ then
     --noconfig \
     --packroot ${ROOT}/INSTALL/CosmoPipe/ \
     --runroot ${ROOT}/COSMOPIPE/ \
-    --cosmofisher ~awright/KiDS/src/CosmoKiDS/ \
+    --cosmofisher ${COSMOFISHER} \
     --storagepath GoldSet_@@GOLDSET@@/${STORAGEDIR}/ \
     --runtime GoldSet_@@GOLDSET@@/RUNTIME/ \
     --configpath GoldSet_@@GOLDSET@@/RUNTIME/config/ \

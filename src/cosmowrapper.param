@@ -10,6 +10,8 @@ P_RSCRIPT=`which Rscript`
 DIR_LDAC="/net/home/fohlen12/hendrik/src/theli-1.30.0/bin/Linux_64/"
 # LDAC Commands Suffix
 THELI="_theli"
+# CosmoFisher (covariance code) path
+COSMOFISHER="/net/home/fohlen12/awright/KiDS/src/CosmoKiDS/"  # need to reinstall
 # Maximum number of simultaneous runs
 MAXRUNS=1
 MAXTHREADS=`nproc`
