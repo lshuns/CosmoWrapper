@@ -8,12 +8,8 @@
 P_RSCRIPT=`which Rscript`
 #LDAC tools folder 
 DIR_LDAC="/net/home/fohlen12/hendrik/src/theli-1.30.0/bin/Linux_64/"
-#path to ldacfilter executable (if using ldacfilter.py instead of C version)
-P_LDACFILTER="/net/home/fohlen13/jlvdb/src/CosmoPipe/scripts/ldacfilter.py"
 #LDAC Commands Suffix
 THELI="_theli"
-# alternative GCC path
-P_GCC=
 #Maximum number of simultaneous runs
 MAXRUNS=1
 MAXTHREADS=`nproc`

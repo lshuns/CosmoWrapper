@@ -20,5 +20,7 @@ do
     ln -sfv $script $WDIR/$(basename $script)
 done
 cp -v $PIPEDIR/src/vandenBusch2021.param $WDIR/
-mkdir -pv $WDIR/CosmoWrapper_Inputs
-mkdir -pv $WDIR/CosmoWrapper_Outputs
+source ${WDIR}/vandenBusch2021.param
+
+mkdir -pv ${WDIR}/${INPUTDIR}
+mkdir -pv ${WDIR}/${OUTPUTDIR}

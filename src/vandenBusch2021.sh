@@ -313,12 +313,12 @@ then
     if [ $TMPLO -lt $TMPHI ]
     then 
       #Normal RA limits: pick lo < RA <= hi 
-      python3 ${P_LDACFILTER} \
+      python3 ldacfilter.py \
         -i ${OUTPUTDIR}/${PHOTCAT_ALL_GOLD} -o ${OUTPUTDIR}/${PHOTCAT_ALL_GOLD//${PATCHALL}/${PATCH}} \
         -c "((ALPHA_J2000>${TMPLO})AND(ALPHA_J2000<=${TMPHI}));"
     else 
       #RA limits cross the RA=0 boundary: pick (RA > lo | RA <= hi)
-      python3 ${P_LDACFILTER} \
+      python3 ldacfilter.py \
         -i ${OUTPUTDIR}/${PHOTCAT_ALL_GOLD} -o ${OUTPUTDIR}/${PHOTCAT_ALL_GOLD//${PATCHALL}/${PATCH}} \
         -c "((ALPHA_J2000>${TMPLO})OR(ALPHA_J2000<=${TMPHI}));"
     fi 
@@ -427,12 +427,12 @@ then
         if [ $TMPLO -lt $TMPHI ]
         then 
           #Normal RA limits: pick lo < RA <= hi 
-          python3 ${P_LDACFILTER} \
+          python3 ldacfilter.py \
             -i ${PHOTCAT_ALL_GOLD} -o ${PHOTCAT_ALL_GOLD//${PATCHALL}/${PATCH}} \
             -c "((ALPHA_J2000>${TMPLO})AND(ALPHA_J2000<=${TMPHI}));"
         else 
           #RA limits cross the RA=0 boundary: pick (RA > lo | RA <= hi)
-          python3 ${P_LDACFILTER} \
+          python3 ldacfilter.py \
             -i ${PHOTCAT_ALL_GOLD} -o ${PHOTCAT_ALL_GOLD//${PATCHALL}/${PATCH}} \
             -c "((ALPHA_J2000>${TMPLO})OR(ALPHA_J2000<=${TMPHI}));"
         fi 
