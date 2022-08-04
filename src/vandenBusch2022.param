@@ -1,0 +1,55 @@
+#
+#
+# Parameters needed for the vandenBusch2022 analyses
+#
+#
+
+# Rscript binary
+P_RSCRIPT=`which Rscript`
+# LDAC tools folder 
+DIR_LDAC="/net/home/fohlen12/hendrik/src/theli-1.30.0/bin/Linux_64/"
+# LDAC Commands Suffix
+THELI="_theli"
+# Maximum number of simultaneous runs
+MAXRUNS=1
+MAXTHREADS=`nproc`
+
+# Inputs Directory (created by setup_workspace.sh)
+INPUTDIR="CosmoWrapper_Inputs/"
+OUTPUTDIR="CosmoWrapper_Outputs/"
+STORAGEDIR="work_K1000/"
+
+# Fiducial Spec Catalogue
+SPECCAT_ALL="KiDS_specz_PAUS_COSMOS2015.csv"
+# Fiducial Phot Catalogue (with "ALLPATCH" Designation)
+FILEBODY="V1.0.0A_ugriZYJHKs_photoz_SG_mask_LF_svn_309c_2Dbins_v2"
+PHOTCAT_ALL="K1000_NS_${FILEBODY}.cat"
+# Survey Footprint Mask 
+MASKFILE="KiDS_K1000_healpix.fits"
+# ALLPATCH Designation 
+PATCHALL="NS"
+# Individual PATCH Designations
+PATCHLIST="N S"
+# PATCH Lower RA limits
+PATCHLO="120 315"
+# PATCH Upper RA limits
+PATCHHI="240 60"
+# effect mask area
+SURVEYAREA=3.1212e+06  # 867.0 sqdeg
+# Blind Designations  
+BLINDS="C"  # use "NONE" if there is no blinding in the lensfit weights
+
+# Define the goldsets to analyse
+GOLDLIST="ORIG Fid plusPAUSCOS15 nQ4 nQ4_Hartley Fid_trunc3 ORIGmbias onlyCOS15 plusPAUS onlyPAUSCOS15 onlyPAUS Fid_nodz Fid_trunc nQ4_HartleyBest nQ4_HartleyWorst Fid_noDEVILS"
+
+# SOM Filename 
+SOMFILE="Spec_Train_Adapt_DIR_SOMdata.Rdata"
+# Tomographic bin clusters (spec training) 
+TOMO_CLUST_SPEC_TRAIN="4000 2200 2800 4200 2000 2000"
+# Tomographic bin limits 
+TOMO_LIMS="0.1 0.3 0.5 0.7 0.9 1.2"
+# redshift label in $SPECCAT_ALL
+ZLABEL="Zbest"
+# Multinest configuration: sampling live points and tolerance
+NLIVE=1000      # 200
+TOLERANCE=0.01  # 0.1

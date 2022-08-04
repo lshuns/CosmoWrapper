@@ -1,5 +1,7 @@
 # CosmoWrapper
+
 Scripts to wrap the CosmoPipe for use in Wright et al 2020b
+
 
 Script takes the KiDS+VIKING-450 dataset and computes: 
 - 6 sets of gold samples:
@@ -11,10 +13,14 @@ Script takes the KiDS+VIKING-450 dataset and computes:
 - Runs the CosmoPipe
 - Plots the results 
 
-To run the code: 
-  - Run the INSTALL.sh script to install the required R packages 
-  - copy/link the R, shell, and python scripts into your desired running directory
-  - Copy the specz compilation and (per-patch) KiDS shear catalogues into CosmoWrapper_Inputs/
-  - Execute the Wright2019b.sh script 
+## INSTALL
 
+Create conda environment:
+> conda env create --file environment.yml
+> conda activate cosmowrapper
+> bash INSTALL.sh
 
+Create working directory at `PATH`:
+> bash setup_workspace.sh [PATH]
+This will link all scripts from `src` into `PATH` and copy the
+`vandenBusch21.param` file.

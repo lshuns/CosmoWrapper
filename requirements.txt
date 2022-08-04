@@ -1,0 +1,3 @@
+astropy
+numpy
+tabeval @ git+https://github.com/jlvdb/tabeval.git
