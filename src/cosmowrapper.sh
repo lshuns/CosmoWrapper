@@ -58,6 +58,7 @@ then
     echo "Constructing Spectroscopic Adapt Catalogue {"
     ${P_RSCRIPT} construct_adapt_catalogue.R ${INPUTDIR}/${SPECCAT_ALL} ${OUTPUTDIR}/${SPECCAT_ALL_ADAPT}
     echo "} - Done"
+    ln -sv ${INPUTDIR}/${PHOTCAT_ALL} ${OUTPUTDIR}/${PHOTCAT_ALL}
   else
     echo "Spectroscopic Adapt Catalogue Already Exists! Skipping!"
   fi
@@ -198,7 +199,7 @@ fi
 
 ################################### STEP 06 ###################################
 # Split the gold sample catalogues into patches
-if [ "${1}" == "66" -o "${1}" == "" ]
+if [ "${1}" == "6" -o "${1}" == "" ]
 then
   # Recreate all patchwise catalogues
   for PATCHNUM in `seq ${NPATCH}`
