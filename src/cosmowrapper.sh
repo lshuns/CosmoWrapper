@@ -102,7 +102,7 @@ then
     echo -e "Constructing the DIR Column Photometry Catalogue\n"
     list=`${DIR_LDAC}/ldacdesc${THELI} -i ${OUTPUTDIR}/${PHOTCAT_ALL} -t OBJECTS |
       grep "Key name" | awk -F. '{print $NF}' |
-      grep -v "MAG_GAAP_\|recal\|autocal\|MAG_AUTO\|SeqNr\|THELI_\|_B\|ID"`
+      grep -v "SeqNr\|THELI_\|_B\|ID\|MAG_GAAP_\|${WEIGHTNAME}\|MAG_AUTO"`
     ${DIR_LDAC}/ldacdelkey${THELI} -i ${OUTPUTDIR}/${PHOTCAT_ALL} -k ${list} -o ${OUTPUTDIR}/${PHOTCAT_ALL_DCOL}
     echo "\n- Done"
   else
@@ -138,7 +138,7 @@ then
       --toroidal --topo hexagonal --som.dim 101 101 -np -fn Inf \
       -sc ${MAXTHREADS} --only.som \
       -o ${OUTPUTDIR} -of ${SOMFILE//_SOMdata/} \
-      --zr.label Z_B --zt.label Zbest \
+      --zr.label Z_B --zt.label ${ZLABEL} \
       -k MAG_GAAP_u-MAG_GAAP_g \
       MAG_GAAP_u-MAG_GAAP_r MAG_GAAP_g-MAG_GAAP_r \
       MAG_GAAP_u-MAG_GAAP_i MAG_GAAP_g-MAG_GAAP_i \
@@ -179,6 +179,8 @@ then
       --blinds ${BLINDS} \
       --outputpath ${OUTPUTDIR}/ \
       --nzformat .asc \
+      -cv ${WEIGHTNAME} \
+      -zn ${ZLABEL} \
       >> ${OUTPUTDIR}/construct_dr4_goldclasses.log
   else
     echo "Gold Catalogues Already Exists! Skipping!"
@@ -275,7 +277,8 @@ then
     --filesuffix _goldclasses \
     --surveyarea ${SURVEYAREA} \
     --blind ${BLINDS} \
-    --blinding UNBLINDED
+    --blinding UNBLINDED \
+    --weightname ${WEIGHTNAME}
 fi
 
 

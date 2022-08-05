@@ -53,10 +53,12 @@ force<-FALSE
 do.surveyClass<-FALSE
 do.redshiftClass<-TRUE
 blind.list<-c("A","B","C")
-count.variable<-'recal_weight'
-output.folder<-"DR4_SOMweight_Results/"
+count.variable<-'galweight'
+count.name<-"recal_weight"
 spec.variable<-'redshift'
-QC.expr<-"abs(mean(spec$redshift,na.rm=T)-weighted.mean(phot$Z_B,phot$recal_weight,na.rm=T))<=0.61" 
+spec.name<-"Zbest"
+output.folder<-"DR4_SOMweight_Results/"
+QC.expr<-"abs(mean(spec$redshift,na.rm=T)-weighted.mean(phot$Z_B,phot$galweight,na.rm=T))<=0.61" 
 tomo.bin<-c(4000,2200,2800,4200,2000)
 tomo.lim<-c(0.1,0.3,0.5,0.7,0.9,1.2)
 nz.format<-'.fits'
@@ -93,7 +95,15 @@ while (length(inputs)!=0) {
     warning("Modifying count variable from Fiducial?!") 
     cat("WARNING: Modifying count variable from Fiducial?!\n") 
     inputs<-inputs[-1]
-    count.variable<-inputs[1]
+    count.name<-inputs[1]
+    inputs<-inputs[-1]
+    #/*fend*/}}}
+  } else if (inputs[1]=='-zn') { 
+    #/*fold*/{{{
+    warning("Modifying redshift variable from Fiducial?!") 
+    cat("WARNING: Modifying redshift from Fiducial?!\n") 
+    inputs<-inputs[-1]
+    spec.name<-inputs[1]
     inputs<-inputs[-1]
     #/*fend*/}}}
   } else if (inputs[1]=='-qc') { 
@@ -199,7 +209,7 @@ while (length(inputs)!=0) {
 #  shear catalogue sample cuts,
 #  calibration sample cuts,
 #  redshift column name)
-class.sets<-rbind(c("Fid", "phot$RedshiftGoldClass>=0", "spec$z_Flag>=3", "Zbest"),)
+class.sets<-rbind(c("Fid", "phot$RedshiftGoldClass>=0", "spec$z_Flag>=3", spec.name),)
 #/*fend*/}}}
 #
 #################### Modify goldclasses here ##################################
@@ -285,9 +295,9 @@ if (!file.exists(outname.phot)|!file.exists(outname.spec)) {
   cat("Output File does not exist!\nCreating GoldFlag and GoldClass\n")
   for (blind in blind.list) { 
     if (blind != "NONE") { 
-      blind.count.variable<-paste0(count.variable,'_',blind)
+      blind.count.name<-paste0(count.name,'_',blind)
     } else { 
-      blind.count.variable<-count.variable
+      blind.count.name<-count.name
     } 
     if (do.surveyClass) { 
       #Survey GoldClass /*fold*/{{{
@@ -305,7 +315,7 @@ if (!file.exists(outname.phot)|!file.exists(outname.spec)) {
           spec.index<-which(spec$Source >= dataset[i] & spec$Source < dataset[i+1] & spec$Z_B>tomo.lim[tomo] & spec$Z_B<=tomo.lim[tomo+1])
           #/*fend*/}}}
           #Define the phot sample /*fold*/{{{
-          phot.index<-which(phot$Z_B>tomo.lim[tomo] & phot$Z_B<=tomo.lim[tomo+1] & phot[[blind.count.variable]]>0 & phot.good.rows)
+          phot.index<-which(phot$Z_B>tomo.lim[tomo] & phot$Z_B<=tomo.lim[tomo+1] & phot[[blind.count.name]]>0 & phot.good.rows)
           #/*fend*/}}}
           #Generate the SOM groupings /*fold*/{{{
           spec.tmp.som<-generate.kohgroups(spec.fid.som,n.cluster.bins=tomo.bin[tomo],n.cores=64,subset=spec.index,quiet=T)
@@ -319,7 +329,7 @@ if (!file.exists(outname.phot)|!file.exists(outname.spec)) {
           phot.tmp.weights<-generate.kohgroup.property(som=phot.tmp.som,
                                                        data=phot,
                                                        n.cluster.bins=tomo.bin[tomo],n.cores=64,
-                                                       expression="sum(data[[blind.count.variable]])",quiet=TRUE)$property$value.1
+                                                       expression="sum(data[[blind.count.name]])",quiet=TRUE)$property$value.1
           tmp.weights<-phot.tmp.weights/spec.tmp.weights
           tmp.weights<-list(refr.weight=1/tmp.weights[phot.tmp.som$clust.classif],train.weight=tmp.weights[spec.tmp.som$clust.classif])
           tmp.weights$refr.weight[which(!is.finite(tmp.weights$refr.weight))]<-0
@@ -328,10 +338,10 @@ if (!file.exists(outname.phot)|!file.exists(outname.spec)) {
           #Delta n_eff /*fold*/{{{
           cat(" $ ")
           cat(tround(digits=1,100*
-              (sum(phot[[blind.count.variable]][which(tmp.weights$refr.weight!=0)])^2/
-               sum(phot[[blind.count.variable]][which(tmp.weights$refr.weight!=0)]^2))/
-              (sum(phot[[blind.count.variable]][phot.index])^2/
-               sum(phot[[blind.count.variable]][phot.index]^2))
+              (sum(phot[[blind.count.name]][which(tmp.weights$refr.weight!=0)])^2/
+               sum(phot[[blind.count.name]][which(tmp.weights$refr.weight!=0)]^2))/
+              (sum(phot[[blind.count.name]][phot.index])^2/
+               sum(phot[[blind.count.name]][phot.index]^2))
               ))
           cat(" $ & ")
           #/*fend*/}}}
@@ -362,7 +372,7 @@ if (!file.exists(outname.phot)|!file.exists(outname.spec)) {
           spec.index<-which(spec$z_Flag >= nQ & spec$Z_B>tomo.lim[tomo] & spec$Z_B<=tomo.lim[tomo+1])
           #/*fend*/}}}
           #Define the phot sample /*fold*/{{{
-          phot.index<-which(phot$Z_B>tomo.lim[tomo] & phot$Z_B<=tomo.lim[tomo+1] & phot[[blind.count.variable]]>0 & phot.good.rows)
+          phot.index<-which(phot$Z_B>tomo.lim[tomo] & phot$Z_B<=tomo.lim[tomo+1] & phot[[blind.count.name]]>0 & phot.good.rows)
           #/*fend*/}}}
           #Generate the SOM groupings /*fold*/{{{
           spec.tmp.som<-generate.kohgroups(spec.fid.som,n.cluster.bins=tomo.bin[tomo],n.cores=64,subset=spec.index,quiet=TRUE)
@@ -376,7 +386,7 @@ if (!file.exists(outname.phot)|!file.exists(outname.spec)) {
           phot.tmp.weights<-generate.kohgroup.property(som=phot.tmp.som,
                                                        data=phot,
                                                        n.cluster.bins=tomo.bin[tomo],n.cores=64,
-                                                       expression="sum(data[[blind.count.variable]])",quiet=TRUE)$property$value.1
+                                                       expression="sum(data[[blind.count.name]])",quiet=TRUE)$property$value.1
           tmp.weights<-phot.tmp.weights/spec.tmp.weights
           tmp.weights<-list(refr.weight=1/tmp.weights[phot.tmp.som$clust.classif],train.weight=tmp.weights[spec.tmp.som$clust.classif])
           tmp.weights$refr.weight[which(!is.finite(tmp.weights$refr.weight))]<-0
@@ -385,10 +395,10 @@ if (!file.exists(outname.phot)|!file.exists(outname.spec)) {
           #Delta n_eff /*fold*/{{{
           cat(" $ ")
           cat(tround(digits=1,100*
-              (sum(phot[[blind.count.variable]][which(tmp.weights$refr.weight!=0)])^2/
-               sum(phot[[blind.count.variable]][which(tmp.weights$refr.weight!=0)]^2))/
-              (sum(phot[[blind.count.variable]][phot.index])^2/
-               sum(phot[[blind.count.variable]][phot.index]^2))
+              (sum(phot[[blind.count.name]][which(tmp.weights$refr.weight!=0)])^2/
+               sum(phot[[blind.count.name]][which(tmp.weights$refr.weight!=0)]^2))/
+              (sum(phot[[blind.count.name]][phot.index])^2/
+               sum(phot[[blind.count.name]][phot.index]^2))
               ))
           cat(" $ & ")
           #/*fend*/}}}
@@ -448,15 +458,15 @@ for (blind in blind.list) {
     #Initialise the expressions /*fold*/ {{{ 
     #Count Variable {{{
     if (blind != "NONE") { 
-      blind.count.variable<-paste0(count.variable,'_',blind)
+      blind.count.name<-paste0(count.name,'_',blind)
     } else { 
-      blind.count.variable<-count.variable
+      blind.count.name<-count.name
     }
     #}}}
     spec.redshift<-class.sets[set,4]
     #QC Expression {{{
     goldset.QC.expr<-gsub(spec.variable,spec.redshift,QC.expr)
-    blind.QC.expr<-gsub(count.variable,blind.count.variable,goldset.QC.expr)
+    blind.QC.expr<-gsub(count.variable,blind.count.name,goldset.QC.expr)
     write(paste0(class.sets[set,1],": ",blind.QC.expr),stderr())
     split.expr<-split.expr(blind.QC.expr,ignore='abs')
     split.names<-names(split.expr$components)
@@ -485,24 +495,24 @@ for (blind in blind.list) {
     full.phot.expressions<-gsub("full.phot[[","phot[[",full.phot.expressions,fixed=T)
     #}}}
     #Spectroscopic QC Expression {{{
-    #blind.spec.expression<-gsub(count.variable,blind.count.variable,spec.expressions)
+    #blind.spec.expression<-gsub(count.variable,blind.count.name,spec.expressions)
     blind.spec.expression<-spec.expressions
     blind.spec.expression<-gsub("SurveyFlag",paste0("SurveyFlag_",blind),blind.spec.expression)
     blind.spec.expression<-gsub("Class",paste0("Class_",blind),blind.spec.expression)
     #}}}
     #Photometric QC Expression {{{
-    #blind.phot.expression<-gsub(count.variable,blind.count.variable,phot.expressions)
+    #blind.phot.expression<-gsub(count.variable,blind.count.name,phot.expressions)
     blind.phot.expression<-phot.expressions
     blind.phot.expression<-gsub("Flag",paste0("Flag_",blind),blind.phot.expression)
     blind.phot.expression<-gsub("Class",paste0("Class_",blind),blind.phot.expression)
     #}}}
     #Spectroscopic Selection Expression {{{
-    blind.spec.selection<-gsub(count.variable,blind.count.variable,class.sets[set,3])
+    blind.spec.selection<-gsub(count.variable,blind.count.name,class.sets[set,3])
     blind.spec.selection<-gsub("SurveyFlag",paste0("SurveyFlag_",blind),blind.spec.selection)
     blind.spec.selection<-gsub("Class",paste0("Class_",blind),blind.spec.selection)
     #}}}
     #Photometric Selection Expression {{{
-    blind.phot.selection<-gsub(count.variable,blind.count.variable,class.sets[set,2])
+    blind.phot.selection<-gsub(count.variable,blind.count.name,class.sets[set,2])
     blind.phot.selection<-gsub("Flag",paste0("Flag_",blind),blind.phot.selection)
     blind.phot.selection<-gsub("Class",paste0("Class_",blind),blind.phot.selection)
     #}}}
@@ -523,9 +533,9 @@ for (blind in blind.list) {
       #/*fend*/}}}
       #Select the relevant photometric and spectroscopic data /*fold*/{{{
       tomo.index<-which(phot$Z_B>tomo.lim[tomo] & phot$Z_B<=tomo.lim[tomo+1] & 
-                        phot[[blind.count.variable]]>0 & phot.good.rows)
+                        phot[[blind.count.name]]>0 & phot.good.rows)
       phot.index<-which(phot$Z_B>tomo.lim[tomo] & phot$Z_B<=tomo.lim[tomo+1] & 
-                        phot[[blind.count.variable]]>0 & eval(parse(text=blind.phot.selection)) & phot.good.rows)
+                        phot[[blind.count.name]]>0 & eval(parse(text=blind.phot.selection)) & phot.good.rows)
       spec.index<-which(spec$Z_B>tomo.lim[tomo] & spec$Z_B<=tomo.lim[tomo+1] & eval(parse(text=blind.spec.selection)))
       #/*fend*/}}}
       #Group the SOM pixels and calculate the properties /*fold*/{{{
@@ -538,7 +548,7 @@ for (blind in blind.list) {
       #}}}
       #Run the phot expressions {{{
       phot.tmp.vals<-generate.kohgroup.property(phot.fid.som,data=phot,n.cluster.bins=tomo.bin[tomo],n.cores=64,subset=phot.index,
-                                                  expression=c(blind.phot.expression,'sum(data[[blind.count.variable]])'),
+                                                  expression=c(blind.phot.expression,'sum(data[[blind.count.name]])'),
                                                   expr.label=c(names(blind.phot.expression),"sumLFweight"),quiet=TRUE)
       phot.tmp.groups<-phot.tmp.vals$som$clust.classif
       qc.frame<-as.data.table(cbind(qc.frame,phot.tmp.vals$property[,-which(colnames(phot.tmp.vals$property)=='group.id')]))
@@ -609,10 +619,10 @@ for (blind in blind.list) {
       #Print the neffective /*fold*/{{{
       cat(" $ ")
       cat(tround(digits=1,100*
-          (sum(phot[[blind.count.variable]][which(tmp.weights$refr.weight!=0)])^2/
-           sum(phot[[blind.count.variable]][which(tmp.weights$refr.weight!=0)]^2))/
-          (sum(phot[[blind.count.variable]][tomo.index])^2/
-           sum(phot[[blind.count.variable]][tomo.index]^2))
+          (sum(phot[[blind.count.name]][which(tmp.weights$refr.weight!=0)])^2/
+           sum(phot[[blind.count.name]][which(tmp.weights$refr.weight!=0)]^2))/
+          (sum(phot[[blind.count.name]][tomo.index])^2/
+           sum(phot[[blind.count.name]][tomo.index]^2))
           ))
       cat(" $ & ")
       #/*fend*/}}}
