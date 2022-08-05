@@ -28,7 +28,6 @@ then
   then
     echo "ERROR: The Input Directory does not contain the survey footprint mask!"
     exit 1
-  fi
   elif [ ! -f ${INPUTDIR}/${SOMCOVFILE} ]
   then
     echo "ERROR: The Input Directory does not contain the shift parameter covariance file!"
@@ -58,7 +57,7 @@ then
     echo "Constructing Spectroscopic Adapt Catalogue {"
     ${P_RSCRIPT} construct_adapt_catalogue.R ${INPUTDIR}/${SPECCAT_ALL} ${OUTPUTDIR}/${SPECCAT_ALL_ADAPT}
     echo "} - Done"
-    ln -sv ${INPUTDIR}/${PHOTCAT_ALL} ${OUTPUTDIR}/${PHOTCAT_ALL}
+    ln -sv ${ROOT}/${INPUTDIR}/${PHOTCAT_ALL} ${ROOT}/${OUTPUTDIR}/${PHOTCAT_ALL}
   else
     echo "Spectroscopic Adapt Catalogue Already Exists! Skipping!"
   fi
@@ -86,7 +85,7 @@ then
     echo -e "Constructing the DIR Column Photometry Catalogue\n"
     list=`${DIR_LDAC}/ldacdesc${THELI} -i ${OUTPUTDIR}/${PHOTCAT_ALL} -t OBJECTS |
       grep "Key name" | awk -F. '{print $NF}' |
-      grep -v "SeqNr\|THELI_\|_B\|ID\|MAG_GAAP_\|${WEIGHTNAME}\|autocal\|MAG_AUTO"`
+      grep -v "SeqNr\|THELI_\|_B\|ID\|MAG_GAAP_\|${WEIGHTNAME}\|_noshear\|_1p\|_1m\|_2p\|_2m\|MAG_AUTO"`
     ${DIR_LDAC}/ldacdelkey${THELI} -i ${OUTPUTDIR}/${PHOTCAT_ALL} -k ${list} -o ${OUTPUTDIR}/${PHOTCAT_ALL_DCOL}
     echo "\n- Done"
   else
