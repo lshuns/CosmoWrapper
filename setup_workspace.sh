@@ -19,8 +19,8 @@ for script in ${PIPEDIR}/src/*{.R,.py,.sh}
 do
     ln -sfv $script $WDIR/$(basename $script)
 done
-cp -v $PIPEDIR/src/vandenBusch2022.param $WDIR/
-source ${WDIR}/vandenBusch2022.param
+cp -v $PIPEDIR/src/cosmowrapper.param $WDIR/
+source ${WDIR}/cosmowrapper.param
 
 mkdir -pv ${WDIR}/${INPUTDIR}
 mkdir -pv ${WDIR}/${OUTPUTDIR}
