@@ -76,25 +76,8 @@ done
 
 ################################### STEP 02 ###################################
 # Combine the patch-wise catalogues into a single one
-if [ "${1}" == "2" -o "${1}" == "" ]
-then
-  # Construct the Combined Photometry Catalogue from Patches
-  if [ ! -f ${OUTPUTDIR}/${PHOTCAT_ALL} ]
-  then
-    echo -e "Constructing Combined Photometry Catalogue from Patches\n"
-    # Paste the patch catalogues together
-    ${DIR_LDAC}/ldacpaste${THELI} -i ${PHOTCAT_PATCHES} -o ${OUTPUTDIR}/${PHOTCAT_ALL}
-    echo "\n- Done"
-  else
-    echo "Combined Photometry Catalogue Already Exists! Skipping!"
-  fi
-fi
-
-
-################################### STEP 03 ###################################
-# Combine the patch-wise catalogues into a single one
 PHOTCAT_ALL_DCOL=${PHOTCAT_ALL//.cat/_DIRcols.cat}
-if [ "${1}" == "3" -o "${1}" == "" ]
+if [ "${1}" == "2" -o "${1}" == "" ]
 then
   # Select DIRcol subset (within LDAC)
   if [ ! -f ${OUTPUTDIR}/${PHOTCAT_ALL_DCOL} ]
@@ -102,7 +85,7 @@ then
     echo -e "Constructing the DIR Column Photometry Catalogue\n"
     list=`${DIR_LDAC}/ldacdesc${THELI} -i ${OUTPUTDIR}/${PHOTCAT_ALL} -t OBJECTS |
       grep "Key name" | awk -F. '{print $NF}' |
-      grep -v "SeqNr\|THELI_\|_B\|ID\|MAG_GAAP_\|${WEIGHTNAME}\|MAG_AUTO"`
+      grep -v "SeqNr\|THELI_\|_B\|ID\|MAG_GAAP_\|${WEIGHTNAME}\|autocal\|MAG_AUTO"`
     ${DIR_LDAC}/ldacdelkey${THELI} -i ${OUTPUTDIR}/${PHOTCAT_ALL} -k ${list} -o ${OUTPUTDIR}/${PHOTCAT_ALL_DCOL}
     echo "\n- Done"
   else
@@ -111,9 +94,9 @@ then
 fi
 
 
-################################### STEP 04 ###################################
+################################### STEP 03 ###################################
 # Train the SOM on the calibration data
-if [ "${1}" == "4" -o "${1}" == "" ]
+if [ "${1}" == "3" -o "${1}" == "" ]
 then
   if [ ! -f SOM_DIR.R ]
   then
@@ -164,9 +147,9 @@ then
 fi
 
 
-################################### STEP 05 ###################################
+################################### STEP 04 ###################################
 # Define the gold sample and compute the SOM redshift distributions
-if [ "${1}" == "5" -o "${1}" == "" ]
+if [ "${1}" == "4" -o "${1}" == "" ]
 then
   # Construct the Gold Classes
   if [ ! -f ${OUTPUTDIR}/${PHOTCAT_ALL_DCOL//.cat/_allgoldclass.fits} ]
@@ -189,10 +172,10 @@ then
 fi
 
 
-################################### STEP 06 ###################################
+################################### STEP 05 ###################################
 # Merge all SOM weights and gold flags into one catalogue
 PHOTCAT_ALL_GOLD=${PHOTCAT_ALL//.cat/_goldclasses.cat}
-if [ "${1}" == "6" -o "${1}" == "" ]
+if [ "${1}" == "5" -o "${1}" == "" ]
 then
   # Merge the new GoldClasses back with the original catalogue
   if [ ! -f ${OUTPUTDIR}/${PHOTCAT_ALL_GOLD} ]
@@ -213,9 +196,9 @@ then
 fi
 
 
-################################### STEP 07 ###################################
+################################### STEP 06 ###################################
 # Split the gold sample catalogues into patches
-if [ "${1}" == "7" -o "${1}" == "" ]
+if [ "${1}" == "66" -o "${1}" == "" ]
 then
   # Recreate all patchwise catalogues
   for PATCHNUM in `seq ${NPATCH}`
@@ -241,9 +224,9 @@ then
 fi
 
 
-################################### STEP 08 ###################################
+################################### STEP 07 ###################################
 # Install CosmoPipe
-if [ "${1}" == "8" -o "${1}" == "" ]
+if [ "${1}" == "7" -o "${1}" == "" ]
 then
   # Run the CosmoPipe Installation
   cd ${ROOT}
@@ -282,9 +265,9 @@ then
 fi
 
 
-################################### STEP 09 ###################################
+################################### STEP 08 ###################################
 # Configure CosmoPipe for the gold samples
-if [ "${1}" == "9" -o "${1}" == "" ]
+if [ "${1}" == "8" -o "${1}" == "" ]
 then
   # Update the configure files
   for GoldSet in ${GOLDLIST}
@@ -326,9 +309,9 @@ then
   cd ${ROOT}/
 fi
 
-################################### STEP 10 ###################################
+################################### STEP 09 ###################################
 # Link gold catalogues and redshift distributions into the CosmoPipe directory
-if [ "${1}" == "10" -o "${1}" == "" ]
+if [ "${1}" == "9" -o "${1}" == "" ]
 then
   # Run the Gold Samples
   cd ${ROOT}/${INPUTDIR}/
@@ -372,9 +355,9 @@ then
 fi
 
 
-################################### STEP 11 ###################################
+################################### STEP 10 ###################################
 # Run CosmoPipe: measurements, data vector, covariance and multinest sampling
-if [ "${1}" == "11" -o "${1}" == "" ]
+if [ "${1}" == "10" -o "${1}" == "" ]
 then
   #Run the Gold Samples
   for GoldSet in ${GOLDLIST}
@@ -417,9 +400,9 @@ then
 fi
 
 
-################################### STEP 12 ###################################
+################################### STEP 11 ###################################
 # Run CosmoPipe: minimisation for best best-fit parameter estimate
-if [ "${1}" == "12" -o "${1}" == "" ]
+if [ "${1}" == "11" -o "${1}" == "" ]
 then
   # Run the Gold Samples with maxlike sampler for MAP
   P_PYTHON=${ROOT}/COSMOPIPE/INSTALL/miniconda3/bin/python3
@@ -488,9 +471,9 @@ ${P_PYTHON} ${installdir}/maxlike/maxlike_cosmosis.py \
 fi
 
 
-################################### STEP 13 ###################################
+################################### STEP 12 ###################################
 # Download Planck TTTEEE and create basic S8 comparison plots.
-if [ "${1}" == "13" -o "${1}" == "" ]
+if [ "${1}" == "12" -o "${1}" == "" ]
 then
   # Construct the Chain Directories
   cd ${ROOT}
