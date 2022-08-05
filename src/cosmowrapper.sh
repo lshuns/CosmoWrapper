@@ -108,7 +108,8 @@ then
     then
       git clone https://github.com/AngusWright/SOM_DIR.git
     fi
-    bash SOM_DIR/INSTALL.sh 2&>1 install_SOM_DIR.log
+    # bash SOM_DIR/INSTALL.sh 2&>1 install_SOM_DIR.log
+    # installed through the INSTALL.sh of this repository
     cd ${ROOT}
     ln -s INSTALL/SOM_DIR/R/SOM_DIR.R .
   fi

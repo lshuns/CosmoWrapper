@@ -32,7 +32,13 @@ require.and.load<-function(name,githubrep,force=FALSE) {
 require.and.load('data.table')
 require.and.load('plotrix')
 require.and.load('Rfits','ASGR')
+require.and.load('KernSmooth') 
+require.and.load('itertools') 
+require.and.load('matrixStats')
+require.and.load('RColorBrewer') 
 require.and.load('helpRfuncs','AngusWright')
+require.and.load('LAMBDAR','AngusWright') 
+require.and.load('kohonen') 
 require.and.load('kohonen/kohonen','AngusWright')
 
 EOF
