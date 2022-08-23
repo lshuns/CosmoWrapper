@@ -288,7 +288,7 @@ then
 
     mkdir -p PatchData/
     cd PatchData/
-    cp ${INPUTDIR}/${SOMCOVFILE} ./
+    cp ${ROOT}/${INPUTDIR}/${SOMCOVFILE} ./
     ln -s ${ROOT}/${OUTPUTDIR}/${PHOTCAT_ALL_GOLD//${PATCHALL}/*} .
 
     cd ${ROOT}/COSMOPIPE

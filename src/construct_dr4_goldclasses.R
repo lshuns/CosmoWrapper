@@ -209,7 +209,7 @@ while (length(inputs)!=0) {
 #  shear catalogue sample cuts,
 #  calibration sample cuts,
 #  redshift column name)
-class.sets<-rbind(c("Fid", "phot$RedshiftGoldClass>=0", "spec$z_Flag>=3", spec.name),)
+class.sets<-rbind(c("Fid", "phot$RedshiftGoldClass>=0", "spec$z_Flag>=3", spec.name))
 #/*fend*/}}}
 #
 #################### Modify goldclasses here ##################################
