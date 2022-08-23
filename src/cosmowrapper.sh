@@ -85,7 +85,7 @@ then
     echo -e "Constructing the DIR Column Photometry Catalogue\n"
     list=`${DIR_LDAC}/ldacdesc${THELI} -i ${OUTPUTDIR}/${PHOTCAT_ALL} -t OBJECTS |
       grep "Key name" | awk -F. '{print $NF}' |
-      grep -v "SeqNr\|THELI_\|_B\|ID\|MAG_GAAP_\|${WEIGHTNAME}\|_noshear\|_1p\|_1m\|_2p\|_2m\|MAG_AUTO"`
+      grep -v "SeqNr\|THELI_\|_B\|ID\|MAG_GAAP_\|${WEIGHTNAME}\|autocal\|MAG_AUTO"`
     ${DIR_LDAC}/ldacdelkey${THELI} -i ${OUTPUTDIR}/${PHOTCAT_ALL} -k ${list} -o ${OUTPUTDIR}/${PHOTCAT_ALL_DCOL}
     echo "\n- Done"
   else
