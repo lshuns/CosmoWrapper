@@ -227,6 +227,10 @@ fi
 
 ################################### STEP 07 ###################################
 # Install CosmoPipe
+if [ "${BLINDS}" != "NONE" ]
+then
+  WEIGHTNAME="${WEIGHTNAME}_${BLINDS}"  # fix the weight name with the blinds
+fi
 if [ "${1}" == "7" -o "${1}" == "" ]
 then
   # Run the CosmoPipe Installation
