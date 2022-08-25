@@ -15,7 +15,7 @@ then
     mkdir -pv $WDIR
 fi
 
-for script in ${PIPEDIR}/src/*{.R,.py,.sh}
+for script in ${PIPEDIR}/src/*{.R,.py,.sh,.cat}
 do
     ln -sfv $script $WDIR/$(basename $script)
 done
