@@ -47,7 +47,9 @@ mkdir -p ${OUTPUTDIR}
 
 
 ################################### STEP 01 ###################################
-# replace the original magnitudes by the adapted ones
+# Prepare the intput data: replace the original magnitudes by the adapted ones,
+# convert to LDAC table format if necessary
+photcat="${PHOTCAT_ALL%.*}.cat"
 SPECCAT_ALL_ADAPT=${SPECCAT_ALL//.csv/_adapt.fits}
 if [ "${1}" == "1" -o "${1}" == "" ]
 then
@@ -57,11 +59,27 @@ then
     echo "Constructing Spectroscopic Adapt Catalogue {"
     ${P_RSCRIPT} construct_adapt_catalogue.R ${INPUTDIR}/${SPECCAT_ALL} ${OUTPUTDIR}/${SPECCAT_ALL_ADAPT}
     echo "} - Done"
-    ln -sv ${ROOT}/${INPUTDIR}/${PHOTCAT_ALL} ${ROOT}/${OUTPUTDIR}/${PHOTCAT_ALL}
   else
     echo "Spectroscopic Adapt Catalogue Already Exists! Skipping!"
   fi
+  #Convert to LDAC if FITS
+  if [ ! -f ${OUTPUTDIR}/${photcat} ]
+  then
+    has_fields=$(echo $(${DIR_LDAC}/ldacdesc${THELI} -i ${INPUTDIR}/${PHOTCAT_ALL} | grep -c FIELDS))
+    if [ "${has_fields}" == "1" ]
+    then
+      #Link file
+      ln -sv ${ROOT}/${INPUTDIR}/${PHOTCAT_ALL} ${ROOT}/${OUTPUTDIR}/${photcat}
+    else
+      #Create a fake LDAC table
+      python fits2ldac.py ${INPUTDIR}/${PHOTCAT_ALL} -o ${OUTPUTDIR}/${photcat}
+    fi
+  else
+    echo "Photometric Catalogue Already Exists! Skipping!"
+  fi
 fi
+# substitute to expected file extension .cat
+PHOTCAT_ALL=$photcat
 
 # Calculate Patch Numbers
 PHOTCAT_PATCHES=""
