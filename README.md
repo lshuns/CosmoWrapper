@@ -25,15 +25,16 @@ automatically, which requires to configure an SSH access tokens for
 ## Installation
 
 Create conda environment for python 3.8 and R (recommended):
-
-> conda env create --file environment.yml
-> conda activate cosmowrapper
-> bash INSTALL.sh
+```shell
+conda env create --file environment.yml
+conda activate cosmowrapper
+bash INSTALL.sh
+```
 
 Create working directory at `PATH`:
-
-> bash setup_workspace.sh [PATH]
-
+```shell
+bash setup_workspace.sh [PATH]
+```
 This will link all scripts from `src` into `PATH` and copy the
 `cosmowrapper.param` file.
 
