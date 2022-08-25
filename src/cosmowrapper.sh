@@ -251,6 +251,13 @@ then
 fi
 if [ "${1}" == "7" -o "${1}" == "" ]
 then
+  #Check if conda is active
+  if [ ! -z "${CONDA_DEFAULT_ENV}" ]
+  then
+    echo "ERROR: disable all conda environments before installing:"
+    echo "       conda deactivate"
+    exit 1
+  fi
   # Run the CosmoPipe Installation
   cd ${ROOT}
   mkdir -p INSTALL
