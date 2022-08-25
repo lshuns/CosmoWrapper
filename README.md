@@ -8,12 +8,18 @@ constraints for the KiDS-1000 cosmic shear data:
   - Compute the COSEBI data vector.
   - Compute the covariance matrix.
   - Run MCMC chains.
-  - Run least-squares minimiser.
+  - Run least-squares minimiser (optional).
 - Collect output data.
 
 ## Requirements
 
-Requires to configure access with SSH tokens for `github.com` and
+You need a local copy of the private repository `CosmoFisherForecast`, please
+contact Benjamin Joachimi.
+
+Optionally, you access to the non-public BitBucket
+repository `marika_asgari/KiDS1000_chains` to run the least-squares minimiser,
+please contact Marika Asgari. The wrapper script installs the code
+automatically, which requires to configure an SSH access tokens for
 `bitbucket.com`.
 
 ## Installation
@@ -44,8 +50,7 @@ needs. Then copy the required input files into the `$INPUTDIR`:
 Additionally, some external code is required, specified through their
 installation path:
 - `$DIR_LDAC`: Folder containing the compiled LDAC tools.
-- `$COSMOFISHER`: Path to CosmoFisherForecast root directory. This code is not
-  public, request this repository directlym from Benjamin Joachimi.
+- `$COSMOFISHER`: Path to CosmoFisherForecast root directory.
 
 ## Execution
 
@@ -60,8 +65,8 @@ steps, which can be run separately (recommended). These steps are numbered:
  7) Install CosmoPipe and its dependencies.
  8) Configure the CosmoPipe for the run.
  9) Collect and prepare the catalogues for CosmoPipe.
-10) Compute data vector, covariance matrix and MCMC sampler
-11) Install and run minimiser
+10) Compute data vector, covariance matrix and MCMC sampler.
+11) Install and run minimiser (optional, requires access to `KiDS1000_chains`).
 12) Download Planck chain and collect MCMC and minimiser output in `ChainDir`.
     These files are in `MultiNest` format and are named:  
     `GoldSet_*_multinest_*.txt` (MCMC)  
