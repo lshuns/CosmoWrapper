@@ -93,7 +93,7 @@ done
 
 
 ################################### STEP 02 ###################################
-# Combine the patch-wise catalogues into a single one
+# Keep a minimum set of columns in the shear catalogue
 PHOTCAT_ALL_DCOL=${PHOTCAT_ALL//.cat/_DIRcols.cat}
 if [ "${1}" == "2" -o "${1}" == "" ]
 then

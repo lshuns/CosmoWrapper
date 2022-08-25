@@ -1,29 +1,68 @@
 # CosmoWrapper
 
-Scripts to wrap the CosmoPipe for use in Wright et al 2020b
-
-Script takes the KiDS+VIKING-450 dataset and computes: 
-- 6 sets of gold samples:
-  -> Fiducial gold class, restricting analysis to photometric sources which are represented by any specz 
-  -> 3x gold classes computed without various spectroscopic surveys (DEEP2, zCOSMOS, VVDS)
-  -> 1x redshift quality gold class (calibrating only with 'certain' confidence redshifts)
-  -> 1x survey gold class, restricting analysis to sources represented by spectra from at least 3 specz samples
-- Calculates the Nz for each of these samples
-- Runs the CosmoPipe
-- Plots the results 
+Scripts to wrap CosmoPipe to calibrate the redshifts and compute cosmological
+constraints for the KiDS-1000 cosmic shear data:
+- Define fiducial gold samples.
+- Calculate the Nz.
+- Run CosmoPipe:
+  - Compute the COSEBI data vector.
+  - Compute the covariance matrix.
+  - Run MCMC chains.
+  - Run least-squares minimiser.
+- Collect output data.
 
 ## Requirements
 
-Requires to configure access with SSH tokens for `github.com` and `bitbucket.com`.
+Requires to configure access with SSH tokens for `github.com` and
+`bitbucket.com`.
 
 ## Installation
 
-Create conda environment:
+Create conda environment for python 3.8 and R (recommended):
+
 > conda env create --file environment.yml
 > conda activate cosmowrapper
 > bash INSTALL.sh
 
 Create working directory at `PATH`:
+
 > bash setup_workspace.sh [PATH]
+
 This will link all scripts from `src` into `PATH` and copy the
-`vandenBusch21.param` file.
+`cosmowrapper.param` file.
+
+## Configuration
+
+Modify the copied `cosmowrapper.param` file in the working directory to your
+needs. Then copy the required input files into the `$INPUTDIR`:
+- `$SPECCAT_ALL`: Spectroscopic calibration data (van den Busch et al. 2022) as
+  CSV file.
+- `$PHOTCAT_ALL`: KiDS-1000 cosmic shear data, can be in FITS or LDAC format.
+- `$MASKFILE`: KiDS-1000 mask file.
+- `$SOMCOVFILE`: Covariance matrix of the delta-z nuisance parameters.
+
+Additionally, some external code is required, specified through their
+installation path:
+- `$DIR_LDAC`: Folder containing the compiled LDAC tools.
+- `$COSMOFISHER`: Path to CosmoFisherForecast root directory. This code is not
+  public, request this repository directlym from Benjamin Joachimi.
+
+## Execution
+
+Run the main wrapper script `cosmowrapper.sh`. The code is split into several
+steps, which can be run separately (recommended). These steps are numbered:
+ 1) Preparing the input data.
+ 2) Reduce the size of the shear catalogue.
+ 3) Download SOM code and train the SOM.
+ 4) Define the Gold sample and compute the n(z).
+ 5) Combine the SOM columns into a single shear catalogue.
+ 6) Split catalogue in KiDS northern and southern field.
+ 7) Install CosmoPipe and its dependencies.
+ 8) Configure the CosmoPipe for the run.
+ 9) Collect and prepare the catalogues for CosmoPipe.
+10) Compute data vector, covariance matrix and MCMC sampler
+11) Install and run minimiser
+12) Download Planck chain and collect MCMC and minimiser output in `ChainDir`.
+    These files are in `MultiNest` format and are named:  
+    `GoldSet_*_multinest_*.txt` (MCMC)  
+    `GoldSet_*_maxlike_*.txt` (minimiser)
